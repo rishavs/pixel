@@ -5,6 +5,22 @@
 #include "pixel.h"
 
 bool read_file(List* errors, char** src, char* filename) {
+    Error* dummy_error = (Error*)malloc(sizeof(Error));
+    if (!dummy_error) {
+        perror("Memory allocation failed for dummy_error");
+        return false;
+    }
+    *dummy_error = (Error){
+        .type = "FileError",
+        .file = __FILE__,
+        .header = "Failed to open file",
+        .msg = "Failed to open file",
+        .line = __LINE__,
+        .pos = 0,
+        .fatal = true
+    };
+    list_push(errors, dummy_error);
+
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
         Error error = {

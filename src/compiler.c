@@ -24,10 +24,14 @@ void compile_file (char* filepath) {
 
     char* src;
     ok = read_file (errors, &src, filepath);
-    if (!ok) {
-        printf("Failed to read file\n");
-        return;
-    }
+    // if (!ok) {
+        printf("Errors:\n");
+        for (size_t i = 0; i < errors->length; i++) {
+            Error* error = (Error*)errors->items[i];
+            error_print(error);
+        }
+        // return;
+    // }
     printf("Source code:\n---------------------------------\n");
     printf("%s", src);
 
@@ -36,18 +40,6 @@ void compile_file (char* filepath) {
     if (!tokens) perror("Memory allocation failed on list_init");
 
 
-
-//     ListOfTokens tokens = lex_file(src);
-//     printf("Tokens:\n---------------------------------\n");
-//     c_foreach (i, ListOfTokens, tokens)  {   // Alternative and recommended way to iterate.
-//         printf("%s: %s, pos %lli, line %zu \n", cstr_str(&i.ref->kind), cstr_str(&i.ref->value), i.ref->pos, i.ref->line);      // i.ref is a pointer to the current element.
-//     }
-
-//     int parsed = parse_file(tokens);
-    
-//     cstr_drop(&src);
-//     free_tokens(&tokens);
-        
     end = clock();
     cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC * 1000;
     printf("\n---------------------------------\n");

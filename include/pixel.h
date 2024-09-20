@@ -66,6 +66,7 @@ typedef struct Error {
 
     bool   fatal;
 } Error;
+void error_print(Error* error);
 
 typedef struct Result {
     bool ok;
