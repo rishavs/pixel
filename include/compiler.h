@@ -4,6 +4,23 @@
 #ifndef PIXEL_COMPILER_H
 #define PIXEL_COMPILER_H
 
+
+typedef struct CompilerError {
+    char*   type;
+    char*   header;
+    char*   msg;
+
+    char*   pixel_file;
+    size_t  pixel_line;
+    size_t  pixel_pos;
+
+    char*   c_file;
+    size_t  c_line;
+    size_t  c_pos;
+} CompilerError;
+void error_print(CompilerError* error);
+
+
 typedef struct Token
 {
     enum {

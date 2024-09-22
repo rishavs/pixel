@@ -6,7 +6,8 @@ TEST_EXECUTABLE = bin/test
 MAIN_FILE = src/pixel.c
 TEST_FILE = test.c
 COMPILER_FLAGS = -I$(HEADERS_FOLDER)
-SOURCE_FILES = src/errors.c \
+SOURCE_FILES = \
+	src/errors.c \
 	src/list.c \
 	src/compiler.c \
 	src/reader.c

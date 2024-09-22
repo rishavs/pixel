@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdint.h>
 
-#define INITIAL_CAPACITY 16
+#define INITIAL_CAPACITY 8
 #define LOAD_FACTOR_THRESHOLD 0.75
 
 typedef void* Ptr;
@@ -19,8 +19,8 @@ typedef struct Entry {
 
 typedef struct Dict {
     Entry** entries;
-    int     capacity;
-    int     length;
+    size_t     capacity;
+    size_t     length;
     Entry*  head;  // For maintaining insertion order
     Entry*  tail;
 } Dict;

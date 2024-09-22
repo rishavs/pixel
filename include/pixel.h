@@ -14,26 +14,51 @@ typedef struct Ref {
     char*   type;
 } Ref; 
 
-typedef enum Default_Types {
+typedef enum All_Types {
     TYPE_NOTHING,
 
     // Primitives
     TYPE_INT,
+    TYPE_DEC,
 
     // Ref Types
     TYPE_REF_INT,
-} Default_Types;
+    TYPE_REF_DEC,
+
+    // Construct this enum at compile time
+} All_Types;
+
+// typedef struct Type_Methods {
+    // List of Dicts of methods
+    // position of the methods corresponds to the All_Types enum
+// } Type_Methods;
 
 
+
+// Primitive types will be structs to keep them light weight
+// 
+// Read only Int type
 typedef struct Int {
-    Default_Types  type;
-    int64_t         value;
+    const All_Types  type;
+    const int64_t    value; // value is only available on primitive types
 } Int;
 
+// methods for Int can just be stored a normal functions starting with "Int_"
+
 typedef struct Ref_Int {
-    Default_Types  type;
-    void*          ref_value;
+    const All_Types type;
+    const void*     ref_value;
 } Ref_Int;
+
+// typedef struct Dec {
+//     const Default_Types  type;
+//     const double         value;
+// } Dec;
+
+// typedef struct Ref_Dec {
+//     const Default_Types  type;
+//     const void*          ref_value;
+// } Ref_Dec;
 
 // Methods for Primitives
 
@@ -55,28 +80,15 @@ typedef struct BaseObject {
 
 } BaseObject;
 
-typedef struct Error {
-    char*   type;
-    char*   file;
-    char*   header;
-    char*   msg;
-
-    size_t  line;
-    size_t  pos;
-
-    bool   fatal;
-} Error;
-void error_print(Error* error);
-
-typedef struct Result {
-    bool ok;
-    union
-    {
-        void* value;
-        Error error;
-    };
+// typedef struct Result {
+//     bool ok;
+//     union
+//     {
+//         void* value;
+//         Error error;
+//     };
     
-} Result;
+// } Result;
 
 // Define the list structure
 #define LIST_DEFAULT_CAPACITY 2
