@@ -3,36 +3,13 @@
 #include <stdbool.h>
 
 #include "pixel.h"
+#include "compiler.h"
 
-bool read_file(List* errors, char** src, char* filename) {
-    Error* dummy_error = (Error*)malloc(sizeof(Error));
-    if (!dummy_error) {
-        perror("Memory allocation failed for dummy_error");
-        return false;
-    }
-    *dummy_error = (Error){
-        .type = "FileError",
-        .file = __FILE__,
-        .header = "Failed to open file",
-        .msg = "Failed to open file",
-        .line = __LINE__,
-        .pos = 0,
-        .fatal = true
-    };
-    list_push(errors, dummy_error);
+bool read_file(List* CompilerErrors, char** src, char* filename) {
 
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
-        Error error = {
-            .type = "FileError",
-            .file = filename,
-            .header = "Failed to open file",
-            .msg = "Failed to open file",
-            .line = 0,
-            .pos = 0,
-            .fatal = true
-        };
-        list_push(errors, &error);
+        add_error_to_list(CompilerErrors, "FileIOError", "Failed to open file", "Failed to open file", filename, 0, 0, NULL, 10);
         return false;
     }
 
@@ -44,16 +21,7 @@ bool read_file(List* errors, char** src, char* filename) {
     // Allocate memory for the buffer to hold the file contents
     *src = (char*)malloc(file_size + 1);
     if (*src == NULL) {
-        Error error = {
-            .type = "MemoryError",
-            .file = filename,
-            .header = "Memory allocation failed",
-            .msg = "Memory allocation failed",
-            .line = 0,
-            .pos = 0,
-            .fatal = true
-        }; 
-        list_push(errors, &error);
+        perror("Memory allocation failed");
         fclose(file);
         return false;
     }

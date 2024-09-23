@@ -1,12 +1,12 @@
 #include "compiler.h"
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 
-
-Token* lex_file (char* src, char* filepath) {
-    // Create a list of tokens. Its size can the size of the source code for simplicity.
-    Token* tokens = malloc(sizeof(Token) * strlen(src));
-
+bool lex_file(List* errors, List* tokens, char* src, char* filepath) {
     // Initialize the lexer
-    size_t line = 1;
+    bool ok = true;
+    size_t line = 0;
     size_t pos = 0;
     size_t token_count = 0;
 
@@ -18,18 +18,29 @@ Token* lex_file (char* src, char* filepath) {
     while (pos < str_len && c != '\0') {
         c = src[pos];
 
-        Token t;
-        t.kind = TOKEN_ILLEGAL;
-        t.value = c;
-        t.pos = pos;
-        t.line = line;
+        Token* t = (Token*)malloc(sizeof(Token));
+        if (!t) {
+            perror("Memory allocation failed for token");
+            return NULL;
+        }
+        t->kind = TOKEN_ILLEGAL;
+        t->value = NULL;
+        t->pos = pos;
+        t->line = line;
 
         // Skip whitespace
-        if (c == ' ' || c == '\t' || c == '\r') {
-            pos++;
-        } else if (c == '\n') {
-            pos++;
-            line++;
+        if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
+            while (pos < str_len && c != '\0') {
+                c = src[pos];
+                if (c == ' ' || c == '\t' || c == '\r') {
+                    pos++;
+                } else if (c == '\n') {
+                    pos++;
+                    line++;
+                } else {
+                    break;
+                }
+            }
 
         // Skip single line comments
         } else if (c == '-' && src[pos + 1] == '-') {
@@ -54,137 +65,66 @@ Token* lex_file (char* src, char* filepath) {
                 }
                 if (c == ']' && src[pos + 1] == '-') {
                     pos += 2;
+                    comment_closed = true;
                     break;
                 }
                 pos++;
             }
             if (!comment_closed) {
-                printf("Error: Unclosed multi-line comment at line %zu, pos %zu\n", line, pos);
+                add_error_to_list(errors, "SyntaxError", "Unclosed multi-line comment", "Unclosed multi-line comment", filepath, line, pos, __FILE__, __LINE__);
                 return NULL;
             }
 
         // Handle numbers
         } else if (c >= '0' && c <= '9') {
-            t.kind = TOKEN_INT;
-            while (c >= '0' && c <= '9' && pos < str_len && c != '\0') {
-                c = src[++pos];
+            t->kind = TOKEN_INT;
+            size_t start_pos = pos;
+            while (pos < str_len && c != '\0') {
+                c = src[pos];
+
+                if ((c >= '0' && c <= '9') || c == '.' || c == '_') {
+                    if (c == '_') {
+                        pos++;
+                        continue;
+                    }
+                    if (c == '.') {
+                        if (t->kind == TOKEN_INT) {
+                            t->kind = TOKEN_DECIMAL;
+                        } else {
+                            break;
+                        }
+                    }
+                } else {
+                    break;
+                }
+                pos++;
             }
+            size_t length = pos - start_pos;
+            t->value = (char*)malloc(length + 1);
+            if (!t->value) {
+                perror("Memory allocation failed for token value");
+                free(t);
+                return NULL;
+            }
+            strncpy(t->value, src + start_pos, length);
+            t->value[length] = '\0';
+            
+            // Push the token to the list
+            list_push(tokens, t);
+            token_count++;
 
-
-
+        // Handle illegal characters
+        } else {
+            t->kind = TOKEN_ILLEGAL;
+            add_error_to_list(errors, "SyntaxError", "Illegal character in source", "Found the Illegal character", filepath, line, pos, __FILE__, __LINE__);
+            pos++;
+            ok = false;
+            
+            // Push the token to the list
+            list_push(tokens, t);
+            token_count++;
+        }
     }
 
+    return ok;
 }
-
-
-
-
-
-
-
-
-// #include <stdio.h>
-// #include <stdlib.h>
-// #include <stdbool.h>
-
-// #include "compiler.h"
-
-// ListOfTokens lex_file (cstr src) {
-//     ListOfTokens tokens = {0};
-    
-//     size_t line = 1;
-
-//     cstr_iter i = cstr_begin(&src);
-//     while (i.ref != cstr_end(&src).ref && i.ref != NULL) {
-//         Token t;
-//         t.kind = cstr_init();
-//         t.value = cstr_init();
-//         t.pos = 0;
-//         t.line = line;
-
-//         // skip whitespace
-//         if (*i.ref == ' ' || *i.ref == '\t' || *i.ref == '\r') {
-//             i = cstr_advance(i, 1);
-//             continue;
-//         } else if (*i.ref == '\n') {
-//             i = cstr_advance(i, 1);
-//             line++;
-//             continue;
-
-//         // handle identifiers and keywords
-//         } else if (*i.ref >= 'a' && *i.ref <= 'z' || *i.ref >= 'A' && *i.ref <= 'Z') {
-//             t.pos = cstr_topos(&src, i);
-
-//             while (
-//                 *i.ref >= 'a' && *i.ref <= 'z' 
-//                 || *i.ref >= 'A' && *i.ref <= 'Z'
-//                 || *i.ref >= '0' && *i.ref <= '9' 
-//                 || *i.ref == '_'
-//             ) {
-//                 cstr_push(&t.value, i.ref);
-//                 i = cstr_advance(i, 1);
-//             }
-//             if (cstr_equals(&t.value, "let")) {
-//                 t.kind = cstr_lit("LET");
-//             } else if (cstr_equals(&t.value, "mut")) {
-//                 t.kind = cstr_lit("MUT");
-//             } else {
-//                 t.kind = cstr_lit("ID");
-//             }
-
-//         // handle numbers
-//         } else if (*i.ref >= '0' && *i.ref <= '9') {
-//             t.pos = cstr_topos(&src, i);
-
-//             bool is_float = false;
-//             while (
-//                 *i.ref >= '0' && *i.ref <= '9'
-//                 || *i.ref == '.' || *i.ref == 'e'
-//                 || *i.ref == '_'
-//             ) {
-//                 if (*i.ref == '_') {
-//                     i = cstr_advance(i, 1);
-//                 }
-//                 if (*i.ref == '.') {
-//                     is_float = true;
-//                 }
-//                 cstr_push(&t.value, i.ref);
-//                 i = cstr_advance(i, 1);
-//             }
-//             if (is_float) {
-//                 t.kind = cstr_lit("FLOAT");
-//             } else {
-//                 t.kind = cstr_lit("INT");
-//             }
-
-//         // handle operators
-//         } else if (*i.ref == '=') {
-//             t.pos = cstr_topos(&src, i);
-
-//             cstr_push(&t.value, i.ref);
-//             i = cstr_advance(i, 1);
-//             if (*i.ref == '=') {
-//                 t.kind = cstr_lit("EQ");
-//                 cstr_push(&t.value, i.ref);
-//                 i = cstr_advance(i, 1);
-//             } else {
-//                 t.kind = cstr_lit("ASSIGN");
-//             }
-            
-//         // handle illegals
-//         } else {
-//             t.pos = cstr_topos(&src, i);
-            
-//             t.kind = cstr_lit("ILLEGAL");
-//             cstr_push(&t.value, i.ref);
-//             i = cstr_advance(i, 1);
-
-//         }
-
-//         // push the token to the list
-//         t.line = line;
-//         ListOfTokens_push(&tokens, t);        
-//     }
-   
-//     return tokens;
-// }

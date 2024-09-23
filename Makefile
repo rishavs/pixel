@@ -7,17 +7,19 @@ MAIN_FILE = src/pixel.c
 TEST_FILE = test.c
 COMPILER_FLAGS = -I$(HEADERS_FOLDER)
 SOURCE_FILES = \
-	src/errors.c \
-	src/list.c \
-	src/compiler.c \
-	src/reader.c
+	src/compiler/errors.c \
+	src/core/list.c \
+	src/core/bag.c \
+	src/compiler/compiler.c \
+	src/compiler/reader.c \
+	src/compiler/lexer.c
 
 # Default target
 all: build
 
 # Build target
 build:
-	$(COMPILER) $(COMPILER_FLAGS) $(MAIN_FILE) $(SOURCE_FILES) -o $(OUTPUT_EXECUTABLE) -lgc
+	$(COMPILER) $(COMPILER_FLAGS) $(MAIN_FILE) $(SOURCE_FILES) -o $(OUTPUT_EXECUTABLE)
 
 # Run target
 run: build

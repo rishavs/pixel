@@ -15,15 +15,18 @@ typedef struct Ref {
 } Ref; 
 
 typedef enum All_Types {
-    TYPE_NOTHING,
+    DEF_TYPE_NOTHING,
 
     // Primitives
-    TYPE_INT,
-    TYPE_DEC,
+    DEF_TYPE_INT,
+    DEF_TYPE_DEC,
 
     // Ref Types
-    TYPE_REF_INT,
-    TYPE_REF_DEC,
+    DEF_TYPE_REF_INT,
+    DEF_TYPE_REF_DEC,
+
+    // Custom Types
+    // CUSTOM_TYPE_POINT
 
     // Construct this enum at compile time
 } All_Types;

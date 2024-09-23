@@ -1,18 +1,8 @@
-// #include <stdio.h>
-// #include <stdlib.h>
 #include <stdbool.h>
 #include <time.h>
 
 #include "pixel.h"
 #include "compiler.h"
-
-// void free_tokens(ListOfTokens* tokens) {
-//     c_foreach(i, ListOfTokens, *tokens) {
-//         cstr_drop(&i.ref->kind);
-//         cstr_drop(&i.ref->value);
-//     }
-//     ListOfTokens_drop(tokens);
-// }
 
 void compile_file (char* filepath) {
     clock_t start, end;
@@ -24,21 +14,35 @@ void compile_file (char* filepath) {
 
     char* src;
     ok = read_file (errors, &src, filepath);
-    // if (!ok) {
+    if (!ok) {
         printf("Errors:\n");
         for (size_t i = 0; i < errors->length; i++) {
-            Error* error = (Error*)errors->items[i];
-            error_print(error);
+            CompilerError* error = (CompilerError*)errors->items[i];
+            compiler_error_print(error);
         }
-        // return;
-    // }
+        return;
+    }
     printf("Source code:\n---------------------------------\n");
     printf("%s", src);
 
-
     List* tokens = list_init("List<Token>");
     if (!tokens) perror("Memory allocation failed on list_init");
-
+    ok = lex_file (errors, tokens, src, filepath);
+    if (!ok) {
+        printf("\nErrors:\n");
+        for (size_t i = 0; i < errors->length; i++) {
+            CompilerError* error = (CompilerError*)errors->items[i];
+            compiler_error_print(error);
+        }
+        return;
+    }
+    printf("Successfully lexed file: %s", ok ? "true" : "false");
+    printf("\n---------------------------------\n");
+    printf("Tokens:\n---------------------------------\n");
+    for (size_t i = 0; i < tokens->length; i++) {
+        Token* token = (Token*)tokens->items[i];
+        printf("{ kind: %d, value: %s, pos: %zu, line: %zu }\n", token->kind, token->value, token->pos, token->line);
+    }
 
     end = clock();
     cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC * 1000;
