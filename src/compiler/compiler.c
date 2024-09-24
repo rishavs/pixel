@@ -36,13 +36,25 @@ void compile_file (char* filepath) {
         }
         return;
     }
-    printf("Successfully lexed file: %s", ok ? "true" : "false");
     printf("\n---------------------------------\n");
     printf("Tokens:\n---------------------------------\n");
     for (size_t i = 0; i < tokens->length; i++) {
         Token* token = (Token*)tokens->items[i];
-        printf("{ kind: %d, value: %s, pos: %zu, line: %zu }\n", token->kind, token->value, token->pos, token->line);
+        printf("{ kind: %s, value: %s, pos: %zu, line: %zu }\n", token->kind, token->value, token->pos, token->line);
     }
+
+    Leaf* program = (Leaf*)malloc(sizeof(Leaf));
+    if (!program) {
+        perror("Memory allocation failed for program");
+        return;
+    }
+    program->kind = "PROGRAM";
+    program->value = NULL;
+    program->pos = 0;
+    program->line = 0;
+    program->args = NULL;
+    program->statements = list_init("List<Leaf>");
+    
 
     end = clock();
     cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC * 1000;
