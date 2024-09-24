@@ -116,7 +116,10 @@ bool lex_file(List* errors, List* tokens, char* src, char* filepath) {
         // Handle illegal characters
         } else {
             t->kind = TOKEN_ILLEGAL;
-            add_error_to_list(errors, "SyntaxError", "Illegal character in source", "Found the Illegal character", filepath, line, pos, __FILE__, __LINE__);
+            char msg[64];
+            snprintf(msg, sizeof(msg), "Found illegal character '%c'", c);
+            
+            add_error_to_list(errors, "SyntaxError", "Illegal character in source", msg, filepath, line, pos, __FILE__, __LINE__);
             pos++;
             ok = false;
             
