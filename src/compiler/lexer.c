@@ -30,7 +30,7 @@ bool lex_file(List* errors, List* tokens, char* src, char* filepath) {
         Token* t = (Token*)malloc(sizeof(Token));
         if (!t) {
             perror("Memory allocation failed for token");
-            return NULL;
+            exit(EXIT_FAILURE);
         }
         t->kind = "ILLEGAL";
         t->value = NULL;
@@ -125,7 +125,10 @@ bool lex_file(List* errors, List* tokens, char* src, char* filepath) {
 
             char* buffer;
             buffer = calloc(pos - end + 1, sizeof(char));
-            if (buffer == NULL) { perror("calloc failed"); };
+            if (buffer == NULL) { 
+                perror("Memory allocation via calloc failed"); 
+                exit(EXIT_FAILURE);
+            };
             strncpy(buffer, src + end, pos - end);
             buffer[pos - end] = '\0';
 
@@ -155,7 +158,7 @@ bool lex_file(List* errors, List* tokens, char* src, char* filepath) {
                     }
                     if (c == '.') {
                         if (t->kind == "INT") {
-                            t->kind = "DECIMAL";
+                            t->kind = "DEC";
                         } else {
                             break;
                         }
@@ -169,8 +172,7 @@ bool lex_file(List* errors, List* tokens, char* src, char* filepath) {
             t->value = (char*)malloc(length + 1);
             if (!t->value) {
                 perror("Memory allocation failed for token value");
-                free(t);
-                return NULL;
+                exit(EXIT_FAILURE);
             }
             strncpy(t->value, src + start_pos, length);
             t->value[length] = '\0';
@@ -181,10 +183,27 @@ bool lex_file(List* errors, List* tokens, char* src, char* filepath) {
         // Handle illegal characters
         } else {
             t->kind = "ILLEGAL";
-            char msg[64];
-            snprintf(msg, sizeof(msg), "Found illegal character '%c'", c);
-
-            add_error_to_list(errors, "SyntaxError", "Illegal character in source", msg, filepath, line, pos, __FILE__, __LINE__);
+            
+                // char* msg = "Expected a statement, but instead found: ";
+                // size_t msg_len = strlen(msg) + strlen(token->value) + 1;
+                // char* err_msg = (char*)malloc(msg_len);
+                // if (!err_msg) {
+                //     perror("Failed to allocate memory for error message");
+                //     return false;
+                // }
+                // snprintf(err_msg, msg_len, "%s%s", msg, token->value);
+                // add_error_to_list(errors, "SyntaxError", "Unexpected Token", err_msg,  filepath, token->line, token->pos, __FILE__, __LINE__);
+            
+            char* msg = "Found illegal character: ";
+            size_t msg_len = strlen(msg) + 2;
+            char* err_msg = (char*)malloc(msg_len);
+            if (!err_msg) {
+                perror("Failed to allocate memory for error message");
+                exit(EXIT_FAILURE);
+            }
+            snprintf(err_msg, msg_len, "%s%c", msg, c);
+            add_error_to_list(errors, "SyntaxError", "Illegal character in source", err_msg, filepath, line, pos, __FILE__, __LINE__);
+            
             pos++;
             ok = false;
             

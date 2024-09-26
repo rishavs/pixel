@@ -22,8 +22,7 @@ bool read_file(List* CompilerErrors, char** src, char* filename) {
     *src = (char*)malloc(file_size + 1);
     if (*src == NULL) {
         perror("Memory allocation failed");
-        fclose(file);
-        return false;
+        exit(EXIT_FAILURE);
     }
 
     // Read the file contents into the src buffer

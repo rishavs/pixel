@@ -19,31 +19,19 @@ void compiler_error_print(CompilerError* error) {
     printf("C Line: %zu\n", error->c_line);
 }
 
-void add_error_to_list(List* CompilerErrors, const char* category, const char* header, const char* msg, const char* pixel_file, size_t pixel_line, size_t pixel_pos, const char* c_file, size_t c_line) {
+void add_error_to_list(List* CompilerErrors, char* category, char* header, char* msg, char* pixel_file, size_t pixel_line, size_t pixel_pos, char* c_file, size_t c_line) {
     CompilerError* error = (CompilerError*)malloc(sizeof(CompilerError));
     if (!error) {
-        perror("Memory allocation failed for compiler_error");
-        return;
+        perror("Memory allocation failed for CompilerError");
+        exit(EXIT_FAILURE);
     }
-    strncpy(error->category, category, COMPILER_ERROR_MAX_CATEGORY_LENGTH - 1);
-    error->category[COMPILER_ERROR_MAX_CATEGORY_LENGTH - 1] = '\0';
-
-    strncpy(error->header, header, COMPILER_ERROR_MAX_HEADER_LENGTH - 1);
-    error->header[COMPILER_ERROR_MAX_HEADER_LENGTH - 1] = '\0';
-
-    strncpy(error->msg, msg, COMPILER_ERROR_MAX_MSG_LENGTH - 1);
-    error->msg[COMPILER_ERROR_MAX_MSG_LENGTH - 1] = '\0';
-
-    strncpy(error->pixel_file, pixel_file, COMPILER_ERROR_MAX_FILE_LENGTH - 1);
-    error->pixel_file[COMPILER_ERROR_MAX_FILE_LENGTH - 1] = '\0';
-
+    error->category = category;
+    error->header = header;
+    error->msg = msg;
+    error->pixel_file = pixel_file;
     error->pixel_line = pixel_line;
     error->pixel_pos = pixel_pos;
-
-    strncpy(error->c_file, (c_file != NULL) ? c_file : "", COMPILER_ERROR_MAX_FILE_LENGTH - 1);
-    error->c_file[COMPILER_ERROR_MAX_FILE_LENGTH - 1] = '\0';
-
+    error->c_file = c_file;
     error->c_line = c_line;
-
     list_push(CompilerErrors, error);
 }

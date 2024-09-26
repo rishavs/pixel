@@ -12,7 +12,8 @@ SOURCE_FILES = \
 	src/core/bag.c \
 	src/compiler/compiler.c \
 	src/compiler/reader.c \
-	src/compiler/lexer.c
+	src/compiler/lexer.c \
+	src/compiler/statements.c
 
 # Default target
 all: build

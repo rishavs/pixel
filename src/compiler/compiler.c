@@ -4,6 +4,25 @@
 #include "pixel.h"
 #include "compiler.h"
 
+void leaf_print(Leaf* leaf, size_t indent) {
+    for (size_t i = 0; i < indent; i++) {
+        printf("  ");
+    }
+    printf("{ kind: %s, value: %s, pos: %zu, line: %zu }\n", leaf->kind, leaf->value, leaf->pos, leaf->line);
+    if (leaf->args) {
+        for (size_t i = 0; i < leaf->args->length; i++) {
+            Leaf* arg = (Leaf*)leaf->args->items[i];
+            leaf_print(arg, indent + 1);
+        }
+    }
+    if (leaf->statements) {
+        for (size_t i = 0; i < leaf->statements->length; i++) {
+            Leaf* statement = (Leaf*)leaf->statements->items[i];
+            leaf_print(statement, indent + 1);
+        }
+    }
+}
+
 void compile_file (char* filepath) {
     clock_t start, end;
     double cpu_time_used;
@@ -26,7 +45,10 @@ void compile_file (char* filepath) {
     printf("%s", src);
 
     List* tokens = list_init("List<Token>");
-    if (!tokens) perror("Memory allocation failed on list_init");
+    if (!tokens) {
+        perror("Memory allocation failed on list_init");
+        exit(EXIT_FAILURE);
+    }
     ok = lex_file (errors, tokens, src, filepath);
     if (!ok) {
         printf("\nErrors:\n");
@@ -46,7 +68,7 @@ void compile_file (char* filepath) {
     Leaf* program = (Leaf*)malloc(sizeof(Leaf));
     if (!program) {
         perror("Memory allocation failed for program");
-        return;
+        exit(EXIT_FAILURE);
     }
     program->kind = "PROGRAM";
     program->value = NULL;
@@ -54,6 +76,19 @@ void compile_file (char* filepath) {
     program->line = 0;
     program->args = NULL;
     program->statements = list_init("List<Leaf>");
+
+    ok = parse_file (errors, program, tokens, filepath);
+    if (!ok) {
+        printf("\nErrors:\n");
+        for (size_t i = 0; i < errors->length; i++) {
+            CompilerError* error = (CompilerError*)errors->items[i];
+            compiler_error_print(error);
+        }
+        return;
+    }
+    printf("\n---------------------------------\n");
+    printf("Program:\n---------------------------------\n");
+    leaf_print(program, 0);
     
 
     end = clock();
