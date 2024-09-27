@@ -1,4 +1,9 @@
 return 
     13 -- only integer is supported for now
 
-return 3
+return -5
+
+return 1  
+-[
+    now adding support for binary
+]- +2

@@ -1,11 +1,12 @@
 # Variables
-COMPILER = tcc
+COMPILER = gcc
 HEADERS_FOLDER = include
 OUTPUT_EXECUTABLE = bin/pixel
 TEST_EXECUTABLE = bin/test
 MAIN_FILE = src/pixel.c
 TEST_FILE = test.c
-COMPILER_FLAGS = -I$(HEADERS_FOLDER)
+COMPILER_FLAGS = -Wall -Wextra -fno-omit-frame-pointer
+INCLUDES = -I$(HEADERS_FOLDER)
 SOURCE_FILES = \
 	src/compiler/errors.c \
 	src/core/list.c \
@@ -21,7 +22,7 @@ all: build
 
 # Build target
 build:
-	$(COMPILER) $(COMPILER_FLAGS) $(MAIN_FILE) $(SOURCE_FILES) -o $(OUTPUT_EXECUTABLE)
+	$(COMPILER) $(COMPILER_FLAGS) $(INCLUDES) $(MAIN_FILE) $(SOURCE_FILES) -o $(OUTPUT_EXECUTABLE)
 
 # Run target
 run: build

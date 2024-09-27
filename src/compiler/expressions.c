@@ -34,10 +34,8 @@ CompilerError* parse_integer(Leaf* int_node, List* tokens, size_t* i, char* file
     int_node->line = token->line;
     int_node->args = NULL;
     int_node->statements = NULL;
-    (*i)++;
     return NULL;
 }
-
 CompilerError* parse_unary_expression(Leaf* expr_node, List* tokens, size_t* i, char* filepath) {
     Token* token = tokens->items[*i];
     if (strcmp(token->kind, "MINUS") == 0) {
@@ -65,12 +63,12 @@ CompilerError* parse_unary_expression(Leaf* expr_node, List* tokens, size_t* i, 
     }
     return parse_integer(expr_node, tokens, i, filepath);
 }
-
 CompilerError* parse_binary_expression(Leaf* expr_node, List* tokens, size_t* i, char* filepath) {
     CompilerError* error = parse_unary_expression(expr_node, tokens, i, filepath);
     if (error) {
         return error;
     }
+    
     while (*i < tokens->length) {
         Token* token = tokens->items[*i];
         if (strcmp(token->kind, "PLUS") == 0 || strcmp(token->kind, "MINUS") == 0) {
@@ -80,31 +78,37 @@ CompilerError* parse_binary_expression(Leaf* expr_node, List* tokens, size_t* i,
                 perror("Failed to allocate memory for right operand");
                 exit(EXIT_FAILURE);
             }
-            CompilerError* error = parse_unary_expression(right_operand, tokens, i, filepath);
+            
+            error = parse_unary_expression(right_operand, tokens, i, filepath);
             if (error) {
                 return error;
             }
-            Leaf* new_expr_node = (Leaf*)malloc(sizeof(Leaf));
-            if (!new_expr_node) {
-                perror("Failed to allocate memory for binary expression");
+            
+            Leaf* new_expr = (Leaf*)malloc(sizeof(Leaf));
+            if (!new_expr) {
+                perror("Failed to allocate memory for new expression");
                 exit(EXIT_FAILURE);
             }
-            new_expr_node->kind = (strcmp(token->kind, "PLUS") == 0) ? "BINARY_PLUS" : "BINARY_MINUS";
-            new_expr_node->value = NULL;
-            new_expr_node->pos = token->pos;
-            new_expr_node->line = token->line;
-            new_expr_node->args = list_init("List<Leaf>");
-            if (!new_expr_node->args) {
+            
+            new_expr->kind = (strcmp(token->kind, "PLUS") == 0) ? "BINARY_PLUS" : "BINARY_MINUS";
+            new_expr->value = NULL;
+            new_expr->pos = token->pos;
+            new_expr->line = token->line;
+            new_expr->args = list_init("List<Leaf>");
+            if (!new_expr->args) {
                 perror("Failed to allocate memory for binary expression arguments");
                 exit(EXIT_FAILURE);
             }
-            list_push(new_expr_node->args, expr_node);
-            list_push(new_expr_node->args, right_operand);
-            *expr_node = *new_expr_node; // Copy the new expression node to expr_node
+            
+            list_push(new_expr->args, expr_node);
+            list_push(new_expr->args, right_operand);
+            
+            expr_node = new_expr;  // Update expr_node to the new binary expression
         } else {
             break;
         }
     }
+    
     return NULL;
 }
 

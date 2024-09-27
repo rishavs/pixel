@@ -148,10 +148,9 @@ bool lex_file(List* errors, List* tokens, char* src, char* filepath) {
             strncpy(buffer, src + end, pos - end);
             buffer[pos - end] = '\0';
 
-            Token token;
             if (strcmp(buffer, "return") == 0) {
                 t->kind = "RETURN";
-                token.value = NULL;
+                t->value = NULL;
             } else {
                 t->kind = "ID";
                 t->value = buffer;
@@ -173,11 +172,12 @@ bool lex_file(List* errors, List* tokens, char* src, char* filepath) {
                         continue;
                     }
                     if (c == '.') {
-                        if (t->kind == "INT") {
+                        if (strcmp(t->kind, "INT") == 0) {
                             t->kind = "DEC";
                         } else {
                             break;
                         }
+
                     }
                 } else {
                     break;
