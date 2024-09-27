@@ -66,5 +66,8 @@ bool read_file (List*, char**, char*);
 bool lex_file (List* errors, List* tokens, char* src, char* filepath);
 bool parse_file (List* errors, Leaf* program, List* tokens, char* filepath);
 
+CompilerError* parse_integer(Leaf* int_node, List* tokens, size_t* i, char* filepath);
+CompilerError* parse_expression(Leaf* expr_node, List* tokens, size_t* i, char* filepath);
+
 
 #endif // PIXEL_COMPILER_H

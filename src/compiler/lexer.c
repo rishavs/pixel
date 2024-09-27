@@ -85,6 +85,22 @@ bool lex_file(List* errors, List* tokens, char* src, char* filepath) {
             }
 
         // Handle operators and symbols
+        } else if (starts_with(src, str_len, pos, "-")) {
+            t->kind = "MINUS";
+            t->value = NULL,
+            t->pos = pos;
+            t->line = line;
+            pos++;
+            list_push(tokens, t);
+        
+        } else if (starts_with(src, str_len, pos, "+")) {
+            t->kind = "PLUS";
+            t->value = NULL,
+            t->pos = pos;
+            t->line = line;
+            pos++;
+            list_push(tokens, t);
+
         } else if (starts_with(src, str_len, pos, "(")) {
             t->kind = "LPAREN";
             t->value = "(",

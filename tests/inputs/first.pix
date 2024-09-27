@@ -1,2 +1,4 @@
 return 
-    13
+    13 -- only integer is supported for now
+
+return 3

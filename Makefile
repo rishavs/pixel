@@ -1,5 +1,5 @@
 # Variables
-COMPILER = gcc
+COMPILER = tcc
 HEADERS_FOLDER = include
 OUTPUT_EXECUTABLE = bin/pixel
 TEST_EXECUTABLE = bin/test
@@ -13,7 +13,8 @@ SOURCE_FILES = \
 	src/compiler/compiler.c \
 	src/compiler/reader.c \
 	src/compiler/lexer.c \
-	src/compiler/statements.c
+	src/compiler/statements.c \
+	src/compiler/expressions.c
 
 # Default target
 all: build
