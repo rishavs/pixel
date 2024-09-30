@@ -64,7 +64,13 @@ CompilerError* parse_unary_expression(Leaf* expr_node, List* tokens, size_t* i, 
     return parse_integer(expr_node, tokens, i, filepath);
 }
 CompilerError* parse_binary_expression(Leaf* expr_node, List* tokens, size_t* i, char* filepath) {
-    CompilerError* error = parse_unary_expression(expr_node, tokens, i, filepath);
+    Leaf* left_operand = (Leaf*)malloc(sizeof(Leaf));
+    if (!left_operand) {
+        perror("Failed to allocate memory for left operand");
+        exit(EXIT_FAILURE);
+    }
+    
+    CompilerError* error = parse_unary_expression(left_operand, tokens, i, filepath);
     if (error) {
         return error;
     }
@@ -84,24 +90,24 @@ CompilerError* parse_binary_expression(Leaf* expr_node, List* tokens, size_t* i,
                 return error;
             }
             
-            Leaf* new_expr = (Leaf*)malloc(sizeof(Leaf));
-            if (!new_expr) {
+            Leaf* bin_expr = (Leaf*)malloc(sizeof(Leaf));
+            if (!bin_expr) {
                 perror("Failed to allocate memory for new expression");
                 exit(EXIT_FAILURE);
             }
             
-            new_expr->kind = (strcmp(token->kind, "PLUS") == 0) ? "BINARY_PLUS" : "BINARY_MINUS";
-            new_expr->value = NULL;
-            new_expr->pos = token->pos;
-            new_expr->line = token->line;
-            new_expr->args = list_init("List<Leaf>");
-            if (!new_expr->args) {
+            bin_expr->kind = (strcmp(token->kind, "PLUS") == 0) ? "BINARY_PLUS" : "BINARY_MINUS";
+            bin_expr->value = NULL;
+            bin_expr->pos = token->pos;
+            bin_expr->line = token->line;
+            bin_expr->args = list_init("List<Leaf>");
+            if (!bin_expr->args) {
                 perror("Failed to allocate memory for binary expression arguments");
                 exit(EXIT_FAILURE);
             }
             
-            list_push(new_expr->args, expr_node);
-            list_push(new_expr->args, right_operand);
+            list_push(bin_expr->args, left_operand);
+            list_push(bin_expr->args, right_operand);
             
             expr_node = new_expr;  // Update expr_node to the new binary expression
         } else {

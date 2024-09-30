@@ -1,8 +1,9 @@
-#include <stdio.h>
-#include "pixel.h"
-
 #ifndef PIXEL_COMPILER_H
 #define PIXEL_COMPILER_H
+
+#include <stdio.h>
+#include "pixel.h"
+#include "ast.h"
 
 typedef struct CompilerError {
     char* category;
@@ -64,10 +65,7 @@ typedef struct Leaf {
 void compile_file (char* filepath);
 bool read_file (List*, char**, char*);
 bool lex_file (List* errors, List* tokens, char* src, char* filepath);
-bool parse_file (List* errors, Leaf* program, List* tokens, char* filepath);
 
-CompilerError* parse_integer(Leaf* int_node, List* tokens, size_t* i, char* filepath);
-CompilerError* parse_expression(Leaf* expr_node, List* tokens, size_t* i, char* filepath);
-
+Node* parse_file(List* errors, List* tokens, char* filepath);
 
 #endif // PIXEL_COMPILER_H

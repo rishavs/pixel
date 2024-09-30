@@ -45,13 +45,13 @@ Ptr list_pop(List *list) {
 
 // Get an item from the list by index
 Ptr list_get(List *list, size_t index) {
-    if (index < 0 || index >= list->length) perror("Index out of bounds");
+    if (index >= list->length) perror("Index out of bounds");
     return list->items[index];
 }
 
 // Set an item in the list by index
 void list_set(List *list, size_t index, Ptr item) {
-    if (index < 0 || index >= list->length) perror("Index out of bounds");
+    if (index >= list->length) perror("Index out of bounds");
     list->items[index] = item;
 }
 

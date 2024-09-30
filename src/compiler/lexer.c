@@ -87,7 +87,7 @@ bool lex_file(List* errors, List* tokens, char* src, char* filepath) {
         // Handle operators and symbols
         } else if (starts_with(src, str_len, pos, "-")) {
             t->kind = "MINUS";
-            t->value = NULL,
+            t->value = "-",
             t->pos = pos;
             t->line = line;
             pos++;
@@ -95,7 +95,23 @@ bool lex_file(List* errors, List* tokens, char* src, char* filepath) {
         
         } else if (starts_with(src, str_len, pos, "+")) {
             t->kind = "PLUS";
-            t->value = NULL,
+            t->value = "+",
+            t->pos = pos;
+            t->line = line;
+            pos++;
+            list_push(tokens, t);
+
+        } else if (starts_with(src, str_len, pos, "*")) {
+            t->kind = "MULTIPLY";
+            t->value = "*",
+            t->pos = pos;
+            t->line = line;
+            pos++;
+            list_push(tokens, t);
+        
+        } else if (starts_with(src, str_len, pos, "/")) {
+            t->kind = "DIVIDE";
+            t->value = "/",
             t->pos = pos;
             t->line = line;
             pos++;
@@ -161,7 +177,7 @@ bool lex_file(List* errors, List* tokens, char* src, char* filepath) {
 
         // Handle numbers
         } else if (c >= '0' && c <= '9') {
-            t->kind = "INT";
+            t->kind = "INTEGER";
             size_t start_pos = pos;
             while (pos < str_len && c != '\0') {
                 c = src[pos];
@@ -172,8 +188,8 @@ bool lex_file(List* errors, List* tokens, char* src, char* filepath) {
                         continue;
                     }
                     if (c == '.') {
-                        if (strcmp(t->kind, "INT") == 0) {
-                            t->kind = "DEC";
+                        if (strcmp(t->kind, "INTEGER") == 0) {
+                            t->kind = "DECIMAL";
                         } else {
                             break;
                         }

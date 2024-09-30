@@ -3,24 +3,89 @@
 
 #include "pixel.h"
 #include "compiler.h"
+#include "ast.h"
 
-void leaf_print(Leaf* leaf, size_t indent) {
-    for (size_t i = 0; i < indent; i++) {
-        printf("  ");
+// Forward declaration
+void print_ast_node(Node* node, int indent_level);
+
+// Helper function to print indentation
+void print_indent(int indent_level) {
+    for (int i = 0; i < indent_level; i++) {
+        printf("  ");  // Two spaces for each indent level
     }
-    printf("{ kind: %s, value: %s, pos: %zu, line: %zu }\n", leaf->kind, leaf->value, leaf->pos, leaf->line);
-    if (leaf->args) {
-        for (size_t i = 0; i < leaf->args->length; i++) {
-            Leaf* arg = (Leaf*)leaf->args->items[i];
-            leaf_print(arg, indent + 1);
-        }
+}
+
+// Function to print a list of nodes (for block statements)
+void print_node_list(List* list, int indent_level) {
+    if (list == NULL) {
+        print_indent(indent_level);
+        printf("NULL\n");
+        return;
     }
-    if (leaf->statements) {
-        for (size_t i = 0; i < leaf->statements->length; i++) {
-            Leaf* statement = (Leaf*)leaf->statements->items[i];
-            leaf_print(statement, indent + 1);
-        }
+    for (size_t i = 0; i < list->length; i++) {
+        print_ast_node(list->items[i], indent_level);
     }
+}
+
+// Main function to print AST nodes
+void print_ast_node(Node* node, int indent_level) {
+    if (node == NULL) {
+        print_indent(indent_level);
+        printf("NULL\n");
+        return;
+    }
+
+    print_indent(indent_level);
+    printf("%s (line %zu, pos %zu)\n", node->type, node->line, node->pos);
+
+    indent_level++;
+
+    if (strcmp(node->type, "INTEGER") == 0) {
+        print_indent(indent_level);
+        printf("Value: %s\n", node->Node_Integer.value);
+    }
+    else if (strcmp(node->type, "DECIMAL") == 0) {
+        print_indent(indent_level);
+        printf("Value: %s\n", node->Node_Decimal.value);
+    }
+    else if (strcmp(node->type, "UNARY_EXPRESSION") == 0) {
+        print_indent(indent_level);
+        printf("Operator: %s\n", node->Node_Unary.operator);
+        print_indent(indent_level);
+        printf("Right:\n");
+        print_ast_node(node->Node_Unary.right, indent_level + 1);
+    }
+    else if (strcmp(node->type, "BINARY_EXPRESSION") == 0) {
+        print_indent(indent_level);
+        printf("Operator: %s\n", node->Node_Binary.operator);
+        print_indent(indent_level);
+        printf("Left:\n");
+        print_ast_node(node->Node_Binary.left, indent_level + 1);
+        print_indent(indent_level);
+        printf("Right:\n");
+        print_ast_node(node->Node_Binary.right, indent_level + 1);
+    }
+    else if (strcmp(node->type, "RETURN") == 0) {
+        print_indent(indent_level);
+        printf("Expression:\n");
+        print_ast_node(node->Node_Return.expr, indent_level + 1);
+    }
+    else if (strcmp(node->type, "PROGRAM") == 0) {
+        print_indent(indent_level);
+        printf("Filepath: %s\n", node->Node_Program.filepath);
+        print_indent(indent_level);
+        printf("Block:\n");
+        print_node_list(node->Node_Program.block, indent_level + 1);
+    }
+    else {
+        print_indent(indent_level);
+        printf("Unknown node type\n");
+    }
+}
+
+// Usage example
+void print_ast(Node* root) {
+    print_ast_node(root, 0);
 }
 
 void compile_file (char* filepath) {
@@ -65,20 +130,23 @@ void compile_file (char* filepath) {
         printf("{ kind: %s, value: %s, pos: %zu, line: %zu }\n", token->kind, token->value, token->pos, token->line);
     }
 
-    Leaf* program = (Leaf*)malloc(sizeof(Leaf));
-    if (!program) {
-        perror("Memory allocation failed for program");
-        exit(EXIT_FAILURE);
-    }
-    program->kind = "PROGRAM";
-    program->value = NULL;
-    program->pos = 0;
-    program->line = 0;
-    program->args = NULL;
-    program->statements = list_init("List<Leaf>");
+    // Leaf* program = (Leaf*)malloc(sizeof(Leaf));
+    // if (!program) {
+    //     perror("Memory allocation failed for program");
+    //     exit(EXIT_FAILURE);
+    // }
+    // program->kind = "PROGRAM";
+    // program->value = NULL;
+    // program->pos = 0;
+    // program->line = 0;
+    // program->args = NULL;
+    // program->statements = list_init("List<Leaf>");
 
-    ok = parse_file (errors, program, tokens, filepath);
-    if (!ok) {
+
+    Node* program = parse_file (errors, tokens, filepath);
+    
+    if (!program) {
+        ok = false;
         printf("\nErrors:\n");
         for (size_t i = 0; i < errors->length; i++) {
             CompilerError* error = (CompilerError*)errors->items[i];
@@ -88,7 +156,7 @@ void compile_file (char* filepath) {
     }
     printf("\n---------------------------------\n");
     printf("Program:\n---------------------------------\n");
-    leaf_print(program, 0);
+    print_ast(program);
     
 
     end = clock();

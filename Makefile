@@ -5,7 +5,7 @@ OUTPUT_EXECUTABLE = bin/pixel
 TEST_EXECUTABLE = bin/test
 MAIN_FILE = src/pixel.c
 TEST_FILE = test.c
-COMPILER_FLAGS = -Wall -Wextra -fno-omit-frame-pointer
+COMPILER_FLAGS = -Wall -Wextra -fno-omit-frame-pointer 
 INCLUDES = -I$(HEADERS_FOLDER)
 SOURCE_FILES = \
 	src/compiler/errors.c \
@@ -14,8 +14,7 @@ SOURCE_FILES = \
 	src/compiler/compiler.c \
 	src/compiler/reader.c \
 	src/compiler/lexer.c \
-	src/compiler/statements.c \
-	src/compiler/expressions.c
+	src/compiler/parser.c 
 
 # Default target
 all: build
