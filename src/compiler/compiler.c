@@ -36,26 +36,26 @@ void print_ast_node(Node* node, int indent_level) {
     }
 
     print_indent(indent_level);
-    printf("%s (line %zu, pos %zu)\n", node->type, node->line, node->pos);
+    printf("%d (line %zu, pos %zu)\n", node->kind, node->line, node->pos);
 
     indent_level++;
 
-    if (strcmp(node->type, "INTEGER") == 0) {
+    if (node->kind == NODE_INTEGER) {
         print_indent(indent_level);
         printf("Value: %s\n", node->Node_Integer.value);
     }
-    else if (strcmp(node->type, "DECIMAL") == 0) {
+    else if (node->kind == NODE_DECIMAL) {
         print_indent(indent_level);
         printf("Value: %s\n", node->Node_Decimal.value);
     }
-    else if (strcmp(node->type, "UNARY_EXPRESSION") == 0) {
+    else if (node->kind == NODE_UNARY) {
         print_indent(indent_level);
         printf("Operator: %s\n", node->Node_Unary.operator);
         print_indent(indent_level);
         printf("Right:\n");
         print_ast_node(node->Node_Unary.right, indent_level + 1);
     }
-    else if (strcmp(node->type, "BINARY_EXPRESSION") == 0) {
+    else if (node->kind == NODE_BINARY) {
         print_indent(indent_level);
         printf("Operator: %s\n", node->Node_Binary.operator);
         print_indent(indent_level);
@@ -65,12 +65,12 @@ void print_ast_node(Node* node, int indent_level) {
         printf("Right:\n");
         print_ast_node(node->Node_Binary.right, indent_level + 1);
     }
-    else if (strcmp(node->type, "RETURN") == 0) {
+    else if (node->kind == NODE_RETURN) {
         print_indent(indent_level);
         printf("Expression:\n");
         print_ast_node(node->Node_Return.expr, indent_level + 1);
     }
-    else if (strcmp(node->type, "PROGRAM") == 0) {
+    else if (node->kind == NODE_PROGRAM) {
         print_indent(indent_level);
         printf("Filepath: %s\n", node->Node_Program.filepath);
         print_indent(indent_level);
@@ -125,9 +125,9 @@ void compile_file (char* filepath) {
     }
     printf("\n---------------------------------\n");
     printf("Tokens:\n---------------------------------\n");
-    for (size_t i = 0; i < tokens->length; i++) {
+        for (size_t i = 0; i < tokens->length; i++) {
         Token* token = (Token*)tokens->items[i];
-        printf("{ kind: %s, value: %s, pos: %zu, line: %zu }\n", token->kind, token->value, token->pos, token->line);
+        printf("{ kind: %s, value: %s, pos: %zu, line: %zu }\n", TokenKindStrings[token->kind], token->value, token->pos, token->line);
     }
 
     // Leaf* program = (Leaf*)malloc(sizeof(Leaf));

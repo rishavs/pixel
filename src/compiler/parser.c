@@ -14,7 +14,7 @@ Node* parse_integer (List* errors, List* tokens, size_t* i, char* filepath) {
         perror("Failed to allocate memory for integer node");
         exit(EXIT_FAILURE);
     }
-    int_node->type = "INTEGER";
+    int_node->kind = NODE_INTEGER;
     int_node->Node_Integer.value = token->value;
     int_node->line = token->line;
     int_node->pos = token->pos;
@@ -29,7 +29,7 @@ Node* parse_decimal (List* errors, List* tokens, size_t* i, char* filepath) {
         perror("Failed to allocate memory for integer node");
         exit(EXIT_FAILURE);
     }
-    dec_node->type = "DECIMAL";
+    dec_node->kind = NODE_DECIMAL;
     dec_node->Node_Decimal.value = token->value;
     dec_node->line = token->line;
     dec_node->pos = token->pos;
@@ -43,7 +43,7 @@ Node* parse_grouped_expression(List* errors, List* tokens, size_t* i, char* file
     Node* expr = parse_expression(errors, tokens, i, filepath);
     if (!expr) return NULL;
     Token* token = tokens->items[*i];
-    if (strcmp(token->kind, "RPAREN") != 0) {
+    if (token->kind != TOKEN_RPAREN) {
         add_error_to_list(errors, "SyntaxError", "Unmatched Parentheses", "Expected a closing parenthesis", filepath, token->line, token->pos, __FILE__, __LINE__);
         perror("Expected a closing parenthesis");
         return NULL;
@@ -54,11 +54,11 @@ Node* parse_grouped_expression(List* errors, List* tokens, size_t* i, char* file
 
 Node* parse_primary_expression(List* errors, List* tokens, size_t* i, char* filepath) {
     Token* token = tokens->items[*i];
-    if (strcmp(token->kind, "INTEGER") == 0) {
+    if (token->kind == TOKEN_INTEGER) {
         return parse_integer(errors, tokens, i, filepath);
-    } else if (strcmp(token->kind, "DECIMAL") == 0) {
+    } else if (token->kind == TOKEN_DECIMAL) {
         return parse_decimal(errors, tokens, i, filepath);
-    } else if (strcmp(token->kind, "LPAREN") == 0) {
+    } else if (token->kind == TOKEN_LPAREN) {
         return parse_grouped_expression(errors, tokens, i, filepath);
     } else {
         add_error_to_list(errors, "SyntaxError", "Invalid Expression", "Expected an expression", filepath, token->line, token->pos, __FILE__, __LINE__);
@@ -72,7 +72,7 @@ Node* parse_unary_expression(List* errors, List* tokens, size_t* i, char* filepa
     Token* token = tokens->items[*i];
     printf("Parsing unary expression for token %s\n", token->value);
     if (
-        strcmp(token->kind, "MINUS") == 0 || strcmp(token->kind, "NOT") == 0
+        token->kind == TOKEN_MINUS || token->kind == TOKEN_NOT
     ) {
         (*i)++;
         Node* unr_expr = parse_primary_expression(errors, tokens, i, filepath);
@@ -85,7 +85,7 @@ Node* parse_unary_expression(List* errors, List* tokens, size_t* i, char* filepa
             perror("Failed to allocate memory for unary expression node");
             exit(EXIT_FAILURE);
         }
-        unary_node->type = "UNARY_EXPRESSION";
+        unary_node->kind = NODE_UNARY;
         unary_node->line = token->line;
         unary_node->pos = token->pos;
         unary_node->Node_Unary.right = unr_expr;
@@ -112,8 +112,8 @@ Node* parse_binary_expression(List* errors, List* tokens, size_t* i, char* filep
 
     Token* op_token = tokens->items[*i];
     if (
-        strcmp(op_token->kind, "PLUS") == 0     || strcmp(op_token->kind, "MINUS") == 0 ||
-        strcmp(op_token->kind, "MULTIPLY") == 0 || strcmp(op_token->kind, "DIVIDE") == 0
+        op_token->kind == TOKEN_PLUS || op_token->kind == TOKEN_MINUS ||
+        op_token->kind == TOKEN_ASTERISK || op_token->kind == TOKEN_FWD_SLASH
     ) {
         (*i)++;
         Node* right = parse_unary_expression(errors, tokens, i, filepath);
@@ -129,7 +129,7 @@ Node* parse_binary_expression(List* errors, List* tokens, size_t* i, char* filep
         }
         char* first_operator = op_token->value;
         
-        binary_node->type = "BINARY_EXPRESSION";
+        binary_node->kind = NODE_BINARY;
         binary_node->line = op_token->line;
         binary_node->pos = op_token->pos;
         binary_node->Node_Binary.left = left;
@@ -138,7 +138,7 @@ Node* parse_binary_expression(List* errors, List* tokens, size_t* i, char* filep
         // Check for additional binary operators
         while (*i < tokens->length) {
             Token* next_op = tokens->items[*i];
-            if (strcmp(next_op->kind, op_token->kind) == 0) {
+            if (next_op->kind == op_token->kind) {
                 (*i)++;
                 Node* next_right = parse_unary_expression(errors, tokens, i, filepath);
                 if (!next_right) {
@@ -160,7 +160,7 @@ Node* parse_binary_expression(List* errors, List* tokens, size_t* i, char* filep
                     return NULL;
                 }
                 
-                new_binary->type = "BINARY_EXPRESSION";
+                new_binary->kind = NODE_BINARY;
                 new_binary->line = next_op->line;
                 new_binary->pos = next_op->pos;
                 new_binary->Node_Binary.left = binary_node;
@@ -190,7 +190,7 @@ Node* parse_expression(List* errors, List* tokens, size_t* i, char* filepath) {
         return NULL;
     }
     Node* binary_expr = parse_binary_expression(errors, tokens, i, filepath);
-    printf("Parsed expression %s\n", binary_expr->type);
+    printf("Parsed expression with value %s\n", NodeKindStrings[binary_expr->kind]);
 
     return binary_expr;
 }
@@ -210,7 +210,7 @@ Node* parse_return(List* errors, List* tokens, size_t* i, char* filepath) {
     }
 
     Node* expr_node = parse_expression(errors, tokens, i, filepath);
-    printf("Parsed expression %s\n", expr_node->type);
+    printf("Parsed expression %s\n", NodeKindStrings[expr_node->kind]);
     if (!expr_node) {
         perror("Failed to parse expression in return statement");
         return NULL;
@@ -222,12 +222,12 @@ Node* parse_return(List* errors, List* tokens, size_t* i, char* filepath) {
         exit(EXIT_FAILURE);
     }
     printf("Allocated memory for return statement\n");
-    ret_node->type = "RETURN";
+    ret_node->kind = NODE_RETURN;
     ret_node->line = expr_node->line;
     ret_node->pos = expr_node->pos;
     ret_node->Node_Return.expr = expr_node;
 
-    printf("Return statement: %s\n", ret_node->type);
+    printf("Return statement: %s\n", NodeKindStrings[ret_node->kind]);
     return ret_node;
 }
 
@@ -239,11 +239,11 @@ List* parse_block(List* errors, List* tokens, size_t* i, char* filepath) {
     while (*i < tokens->length) {
         Token* token = tokens->items[*i];
 
-        if (strcmp(token->kind, "RETURN") == 0) {
+        if (token->kind == TOKEN_RETURN) {
             in_recovery_loop = false;
             puts("Parsing return statement");
             Node* ret_node = parse_return(errors, tokens, i, filepath);
-            printf("Parsed return statement %s", ret_node->type);
+            printf("Parsed return statement %s", NodeKindStrings[ret_node->kind]);
             if (!ret_node) {
                 in_recovery_loop = true;
                 printf("Failed to parse return statement\n");
@@ -281,13 +281,13 @@ Node* parse_file(List* errors, List* tokens, char* filepath) {
         perror("Failed to allocate memory for file node");
         exit(EXIT_FAILURE);
     }
-    program->type = "PROGRAM";
+    program->kind = NODE_PROGRAM;
     program->line = 0;
     program->pos = 0;
     program->Node_Program.filepath = filepath;
 
     List* statements = parse_block(errors, tokens, &i, filepath);
-    printf("\nStatements: %zu\n", statements->length);
+    printf("\nNumber of Statements: %zu\n", statements->length);
     program->Node_Program.block = statements;
 
     return program;

@@ -1,7 +1,8 @@
-#include "compiler.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+
+#include "compiler.h"
 
 bool starts_with(char *src, size_t src_len, size_t i,  char* frag) {
     size_t frag_len = strlen(frag);
@@ -10,6 +11,17 @@ bool starts_with(char *src, size_t src_len, size_t i,  char* frag) {
         if (src[i + j] != frag[j]) { return false; }
     }
     return true;
+}
+
+char* char_to_string(char c) {
+    char* str = (char*)malloc(2 * sizeof(char)); // Allocate memory for 2 characters
+    if (!str) {
+        perror("Memory allocation failed");
+        exit(EXIT_FAILURE);
+    }
+    str[0] = c;  // Assign the character
+    str[1] = '\0'; // Null terminator
+    return str;
 }
 
 
@@ -32,8 +44,8 @@ bool lex_file(List* errors, List* tokens, char* src, char* filepath) {
             perror("Memory allocation failed for token");
             exit(EXIT_FAILURE);
         }
-        t->kind = "ILLEGAL";
-        t->value = NULL;
+        t->kind = TOKEN_ILLEGAL;
+        t->value = char_to_string(c);
         t->pos = pos;
         t->line = line;
 
@@ -81,53 +93,53 @@ bool lex_file(List* errors, List* tokens, char* src, char* filepath) {
             }
             if (!comment_closed) {
                 add_error_to_list(errors, "SyntaxError", "Unclosed multi-line comment", "Unclosed multi-line comment", filepath, line, pos, __FILE__, __LINE__);
-                return NULL;
+                return false;
             }
 
         // Handle operators and symbols
         } else if (starts_with(src, str_len, pos, "-")) {
-            t->kind = "MINUS";
-            t->value = "-",
+            t->kind = TOKEN_MINUS;
+            t->value = char_to_string(c);
             t->pos = pos;
             t->line = line;
             pos++;
             list_push(tokens, t);
         
         } else if (starts_with(src, str_len, pos, "+")) {
-            t->kind = "PLUS";
-            t->value = "+",
+            t->kind = TOKEN_PLUS;
+            t->value = char_to_string(c);
             t->pos = pos;
             t->line = line;
             pos++;
             list_push(tokens, t);
 
         } else if (starts_with(src, str_len, pos, "*")) {
-            t->kind = "MULTIPLY";
-            t->value = "*",
+            t->kind = TOKEN_ASTERISK;
+            t->value = char_to_string(c);
             t->pos = pos;
             t->line = line;
             pos++;
             list_push(tokens, t);
         
         } else if (starts_with(src, str_len, pos, "/")) {
-            t->kind = "DIVIDE";
-            t->value = "/",
+            t->kind = TOKEN_FWD_SLASH;
+            t->value = char_to_string(c);
             t->pos = pos;
             t->line = line;
             pos++;
             list_push(tokens, t);
 
         } else if (starts_with(src, str_len, pos, "(")) {
-            t->kind = "LPAREN";
-            t->value = "(",
+            t->kind = TOKEN_LPAREN;
+            t->value = char_to_string(c);
             t->pos = pos;
             t->line = line;
             pos++;
             list_push(tokens, t);
 
         } else if (starts_with(src, str_len, pos, ")")) {
-            t->kind = "RPAREN";
-            t->value = ")",
+            t->kind = TOKEN_RPAREN;
+            t->value = char_to_string(c);
             t->pos = pos;
             t->line = line;
             pos++;
@@ -165,10 +177,10 @@ bool lex_file(List* errors, List* tokens, char* src, char* filepath) {
             buffer[pos - end] = '\0';
 
             if (strcmp(buffer, "return") == 0) {
-                t->kind = "RETURN";
-                t->value = NULL;
+                t->kind = TOKEN_RETURN;
+                t->value = buffer;
             } else {
-                t->kind = "ID";
+                t->kind = TOKEN_ID;
                 t->value = buffer;
             }
             t->pos = end;
@@ -177,7 +189,7 @@ bool lex_file(List* errors, List* tokens, char* src, char* filepath) {
 
         // Handle numbers
         } else if (c >= '0' && c <= '9') {
-            t->kind = "INTEGER";
+            t->kind = TOKEN_INTEGER;
             size_t start_pos = pos;
             while (pos < str_len && c != '\0') {
                 c = src[pos];
@@ -188,8 +200,8 @@ bool lex_file(List* errors, List* tokens, char* src, char* filepath) {
                         continue;
                     }
                     if (c == '.') {
-                        if (strcmp(t->kind, "INTEGER") == 0) {
-                            t->kind = "DECIMAL";
+                        if (t->kind == TOKEN_INTEGER) {
+                            t->kind = TOKEN_DECIMAL;
                         } else {
                             break;
                         }
@@ -214,7 +226,8 @@ bool lex_file(List* errors, List* tokens, char* src, char* filepath) {
 
         // Handle illegal characters
         } else {
-            t->kind = "ILLEGAL";
+            t->kind = TOKEN_ILLEGAL;
+            t->value = char_to_string(c);
             
                 // char* msg = "Expected a statement, but instead found: ";
                 // size_t msg_len = strlen(msg) + strlen(token->value) + 1;
