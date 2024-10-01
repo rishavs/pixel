@@ -130,6 +130,8 @@ Node* parse_binary_expression(List* errors, List* tokens, size_t* i, char* filep
         binary_node->Node_Binary.right = right;
         binary_node->Node_Binary.operator = op_token->value;
 
+        left = binary_node; // Update the left operand for the next iteration
+
         // Check for additional binary operators and create new binary expression nodes
         while (*i < tokens->length) {
             Token* nxt_tok = tokens->items[*i];
@@ -143,7 +145,7 @@ Node* parse_binary_expression(List* errors, List* tokens, size_t* i, char* filep
                     perror("Cannot mix different binary operators without parentheses");
                     return NULL;
                 }
-
+                
                 (*i)++;
                 Node* next_right = parse_unary_expression(errors, tokens, i, filepath);
                 if (!next_right) {
@@ -152,31 +154,30 @@ Node* parse_binary_expression(List* errors, List* tokens, size_t* i, char* filep
                 }
 
                 // Create a new binary expression node and make the previous binary node its left child
-                binary_node = (Node*)malloc(sizeof(Node));
-                if (!binary_node) {
+                Node* new_binary_node = (Node*)malloc(sizeof(Node));
+                if (!new_binary_node) {
                     perror("Failed to allocate memory for binary expression node");
                     exit(EXIT_FAILURE);
                 }
 
-                binary_node->kind = NODE_BINARY;
-                binary_node->line = nxt_tok->line;
-                binary_node->pos = nxt_tok->pos;
-                binary_node->Node_Binary.left = left; // Use the original left operand
-                binary_node->Node_Binary.right = next_right;
-                binary_node->Node_Binary.operator = nxt_tok->value;
+                new_binary_node->kind = NODE_BINARY;
+                new_binary_node->line = nxt_tok->line;
+                new_binary_node->pos = nxt_tok->pos;
+                new_binary_node->Node_Binary.left = left; // Use the previous binary node as the left operand
+                new_binary_node->Node_Binary.right = next_right;
+                new_binary_node->Node_Binary.operator = nxt_tok->value;
 
-                left = binary_node; // Update the left operand for the next iteration
+                left = new_binary_node; // Update the left operand for the next iteration
             } else {
                 break;
             }
         }
 
-        return binary_node;
+        return left; // Return the last binary node created
     }
 
     return left;
 }
-
 Node* parse_expression(List* errors, List* tokens, size_t* i, char* filepath) {
     if (*i >= tokens->length) {
         size_t lastLine = ((Token*)tokens->items[tokens->length - 1])->line;
