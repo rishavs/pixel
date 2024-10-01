@@ -36,7 +36,7 @@ void print_ast_node(Node* node, int indent_level) {
     }
 
     print_indent(indent_level);
-    printf("%d (line %zu, pos %zu)\n", node->kind, node->line, node->pos);
+    printf("%s (line %zu, pos %zu)\n", NodeKindStrings[node->kind], node->line, node->pos);
 
     indent_level++;
 
@@ -142,11 +142,21 @@ void compile_file (char* filepath) {
     // program->args = NULL;
     // program->statements = list_init("List<Leaf>");
 
-
-    Node* program = parse_file (errors, tokens, filepath);
     
+    Node* program = (Node*)malloc(sizeof(Node));
     if (!program) {
-        ok = false;
+        perror("Failed to allocate memory for file node");
+        exit(EXIT_FAILURE);
+    }
+    program->kind = NODE_PROGRAM;
+    program->line = 0;
+    program->pos = 0;
+    program->Node_Program.filepath = filepath;
+    program->Node_Program.block = NULL;
+
+    ok = parse_file (errors, program, tokens, filepath);
+    
+    if (!ok) {
         printf("\nErrors:\n");
         for (size_t i = 0; i < errors->length; i++) {
             CompilerError* error = (CompilerError*)errors->items[i];
@@ -157,6 +167,7 @@ void compile_file (char* filepath) {
     printf("\n---------------------------------\n");
     printf("Program:\n---------------------------------\n");
     print_ast(program);
+    printf("\nErrors:\n");
     
 
     end = clock();

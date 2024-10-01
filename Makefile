@@ -5,7 +5,7 @@ OUTPUT_EXECUTABLE = bin/pixel
 TEST_EXECUTABLE = bin/test
 MAIN_FILE = src/pixel.c
 TEST_FILE = test.c
-COMPILER_FLAGS = -fno-omit-frame-pointer -fsanitize=address
+COMPILER_FLAGS = -fno-omit-frame-pointer #-fsanitize=address
 COMPILER_WARNINGS = -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter
 INCLUDES = -I$(HEADERS_FOLDER)
 SOURCE_FILES = \

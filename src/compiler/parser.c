@@ -5,10 +5,8 @@
 
 Node* parse_expression(List* errors, List* tokens, size_t* i, char* filepath);
 
-
 Node* parse_integer (List* errors, List* tokens, size_t* i, char* filepath) {
     Token* token = tokens->items[*i];
-    (*i)++;
     Node* int_node = (Node*)malloc(sizeof(Node));
     if (!int_node) {
         perror("Failed to allocate memory for integer node");
@@ -19,11 +17,11 @@ Node* parse_integer (List* errors, List* tokens, size_t* i, char* filepath) {
     int_node->line = token->line;
     int_node->pos = token->pos;
 
+    (*i)++;
     return int_node;
 };
 Node* parse_decimal (List* errors, List* tokens, size_t* i, char* filepath) {
     Token* token = tokens->items[*i];
-    (*i)++;
     Node* dec_node = (Node*)malloc(sizeof(Node));
     if (!dec_node) {
         perror("Failed to allocate memory for integer node");
@@ -34,9 +32,9 @@ Node* parse_decimal (List* errors, List* tokens, size_t* i, char* filepath) {
     dec_node->line = token->line;
     dec_node->pos = token->pos;
 
+    (*i)++;
     return dec_node;
 };
-
 
 Node* parse_grouped_expression(List* errors, List* tokens, size_t* i, char* filepath) {
     (*i)++; // Consume '('
@@ -68,9 +66,7 @@ Node* parse_primary_expression(List* errors, List* tokens, size_t* i, char* file
 }
 
 Node* parse_unary_expression(List* errors, List* tokens, size_t* i, char* filepath) {
-    puts("Parsing unary expression");
     Token* token = tokens->items[*i];
-    printf("Parsing unary expression for token %s\n", token->value);
     if (
         token->kind == TOKEN_MINUS || token->kind == TOKEN_NOT
     ) {
@@ -101,7 +97,6 @@ Node* parse_unary_expression(List* errors, List* tokens, size_t* i, char* filepa
         return expr;
     }
 }
-
 Node* parse_binary_expression(List* errors, List* tokens, size_t* i, char* filepath) {
     Node* left = parse_unary_expression(errors, tokens, i, filepath);
     if (!left) {
@@ -127,18 +122,28 @@ Node* parse_binary_expression(List* errors, List* tokens, size_t* i, char* filep
             perror("Failed to allocate memory for binary expression node");
             exit(EXIT_FAILURE);
         }
-        char* first_operator = op_token->value;
-        
+
         binary_node->kind = NODE_BINARY;
         binary_node->line = op_token->line;
         binary_node->pos = op_token->pos;
         binary_node->Node_Binary.left = left;
         binary_node->Node_Binary.right = right;
-        binary_node->Node_Binary.operator = first_operator;
-        // Check for additional binary operators
+        binary_node->Node_Binary.operator = op_token->value;
+
+        // Check for additional binary operators and create new binary expression nodes
         while (*i < tokens->length) {
-            Token* next_op = tokens->items[*i];
-            if (next_op->kind == op_token->kind) {
+            Token* nxt_tok = tokens->items[*i];
+            if (
+                nxt_tok->kind == TOKEN_PLUS || nxt_tok->kind == TOKEN_MINUS ||
+                nxt_tok->kind == TOKEN_ASTERISK || nxt_tok->kind == TOKEN_FWD_SLASH
+            ) {
+                if (strcmp(op_token->value, nxt_tok->value) != 0) {
+                    // If the operators are different, throw an error
+                    add_error_to_list(errors, "SyntaxError", "Mixed Binary Operators", "Cannot mix different binary operators without parentheses", filepath, nxt_tok->line, nxt_tok->pos, __FILE__, __LINE__);
+                    perror("Cannot mix different binary operators without parentheses");
+                    return NULL;
+                }
+
                 (*i)++;
                 Node* next_right = parse_unary_expression(errors, tokens, i, filepath);
                 if (!next_right) {
@@ -146,28 +151,21 @@ Node* parse_binary_expression(List* errors, List* tokens, size_t* i, char* filep
                     return NULL;
                 }
 
-                Node* new_binary = (Node*)malloc(sizeof(Node));
-                if (!new_binary) {
+                // Create a new binary expression node and make the previous binary node its left child
+                binary_node = (Node*)malloc(sizeof(Node));
+                if (!binary_node) {
                     perror("Failed to allocate memory for binary expression node");
                     exit(EXIT_FAILURE);
                 }
 
-                char* next_operator = next_op->value;
-              
-                if (strcmp(first_operator, next_operator) != 0) {
-                    add_error_to_list(errors, "SyntaxError", "Mixed Binary Operators", "Cannot mix different binary operators without parentheses", filepath, next_op->line, next_op->pos, __FILE__, __LINE__);
-                    perror("Cannot mix different binary operators without parentheses");
-                    return NULL;
-                }
-                
-                new_binary->kind = NODE_BINARY;
-                new_binary->line = next_op->line;
-                new_binary->pos = next_op->pos;
-                new_binary->Node_Binary.left = binary_node;
-                new_binary->Node_Binary.right = next_right;
-                new_binary->Node_Binary.operator = next_operator;
+                binary_node->kind = NODE_BINARY;
+                binary_node->line = nxt_tok->line;
+                binary_node->pos = nxt_tok->pos;
+                binary_node->Node_Binary.left = left; // Use the original left operand
+                binary_node->Node_Binary.right = next_right;
+                binary_node->Node_Binary.operator = nxt_tok->value;
 
-                binary_node = new_binary;
+                left = binary_node; // Update the left operand for the next iteration
             } else {
                 break;
             }
@@ -179,9 +177,7 @@ Node* parse_binary_expression(List* errors, List* tokens, size_t* i, char* filep
     return left;
 }
 
-
 Node* parse_expression(List* errors, List* tokens, size_t* i, char* filepath) {
-    printf("Parsing expression\n");
     if (*i >= tokens->length) {
         size_t lastLine = ((Token*)tokens->items[tokens->length - 1])->line;
         size_t lastPos = ((Token*)tokens->items[tokens->length - 1])->pos;
@@ -190,7 +186,6 @@ Node* parse_expression(List* errors, List* tokens, size_t* i, char* filepath) {
         return NULL;
     }
     Node* binary_expr = parse_binary_expression(errors, tokens, i, filepath);
-    printf("Parsed expression with value %s\n", NodeKindStrings[binary_expr->kind]);
 
     return binary_expr;
 }
@@ -199,7 +194,6 @@ Node* parse_expression(List* errors, List* tokens, size_t* i, char* filepath) {
 Node* parse_return(List* errors, List* tokens, size_t* i, char* filepath) {
     (*i)++;  // Consume 'return'
 
-    printf("Parsing return statement\n");
     if (*i >= tokens->length) {
         size_t lastLine = ((Token*)tokens->items[tokens->length - 1])->line;
         size_t lastPos = ((Token*)tokens->items[tokens->length - 1])->pos;
@@ -210,7 +204,6 @@ Node* parse_return(List* errors, List* tokens, size_t* i, char* filepath) {
     }
 
     Node* expr_node = parse_expression(errors, tokens, i, filepath);
-    printf("Parsed expression %s\n", NodeKindStrings[expr_node->kind]);
     if (!expr_node) {
         perror("Failed to parse expression in return statement");
         return NULL;
@@ -221,13 +214,11 @@ Node* parse_return(List* errors, List* tokens, size_t* i, char* filepath) {
         perror("Failed to allocate memory for return statement");
         exit(EXIT_FAILURE);
     }
-    printf("Allocated memory for return statement\n");
     ret_node->kind = NODE_RETURN;
     ret_node->line = expr_node->line;
     ret_node->pos = expr_node->pos;
     ret_node->Node_Return.expr = expr_node;
 
-    printf("Return statement: %s\n", NodeKindStrings[ret_node->kind]);
     return ret_node;
 }
 
@@ -241,12 +232,9 @@ List* parse_block(List* errors, List* tokens, size_t* i, char* filepath) {
 
         if (token->kind == TOKEN_RETURN) {
             in_recovery_loop = false;
-            puts("Parsing return statement");
             Node* ret_node = parse_return(errors, tokens, i, filepath);
-            printf("Parsed return statement %s", NodeKindStrings[ret_node->kind]);
             if (!ret_node) {
                 in_recovery_loop = true;
-                printf("Failed to parse return statement\n");
                 return block;
             }
             list_push(block, ret_node);
@@ -266,29 +254,21 @@ List* parse_block(List* errors, List* tokens, size_t* i, char* filepath) {
                 perror(err_msg);
                 add_error_to_list(errors, "SyntaxError", "Unexpected Token", err_msg,  filepath, token->line, token->pos, __FILE__, __LINE__);
             }
+            (*i)++;
         }
-        (*i)++;
     }
     return block;
 }
 
-Node* parse_file(List* errors, List* tokens, char* filepath) {
-
+bool parse_file(List* errors, Node* program, List* tokens, char* filepath) {
+    bool ok = false;
     size_t i = 0;
 
-    Node* program = (Node*)malloc(sizeof(Node));
-    if (!program) {
-        perror("Failed to allocate memory for file node");
-        exit(EXIT_FAILURE);
-    }
-    program->kind = NODE_PROGRAM;
-    program->line = 0;
-    program->pos = 0;
-    program->Node_Program.filepath = filepath;
+    size_t current_error_count = errors->length;
 
     List* statements = parse_block(errors, tokens, &i, filepath);
     printf("\nNumber of Statements: %zu\n", statements->length);
     program->Node_Program.block = statements;
 
-    return program;
+    return errors->length == current_error_count;
 }

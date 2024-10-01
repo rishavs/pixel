@@ -105,6 +105,6 @@ void compile_file (char* filepath);
 bool read_file (List*, char**, char*);
 bool lex_file (List* errors, List* tokens, char* src, char* filepath);
 
-Node* parse_file(List* errors, List* tokens, char* filepath);
+bool parse_file(List* errors, Node* program, List* tokens, char* filepath);
 
 #endif // PIXEL_COMPILER_H
