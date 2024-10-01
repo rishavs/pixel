@@ -11,7 +11,7 @@ void print_ast_node(Node* node, int indent_level);
 // Helper function to print indentation
 void print_indent(int indent_level) {
     for (int i = 0; i < indent_level; i++) {
-        printf("  ");  // Two spaces for each indent level
+        printf("    ");  // Two spaces for each indent level
     }
 }
 
@@ -36,44 +36,39 @@ void print_ast_node(Node* node, int indent_level) {
     }
 
     print_indent(indent_level);
-    printf("%s (line %zu, pos %zu)\n", NodeKindStrings[node->kind], node->line, node->pos);
-
-    indent_level++;
+    printf("%s : line %zu, pos %zu", NodeKindStrings[node->kind], node->line, node->pos);
 
     if (node->kind == NODE_INTEGER) {
-        print_indent(indent_level);
-        printf("Value: %s\n", node->Node_Integer.value);
+        printf(", Value: %s\n", node->Node_Integer.value);
+        // printf(")\n");
     }
-    else if (node->kind == NODE_DECIMAL) {
-        print_indent(indent_level);
+    else if (node->kind == NODE_DECIMAL || node->kind == NODE_INTEGER ) {
         printf("Value: %s\n", node->Node_Decimal.value);
     }
     else if (node->kind == NODE_UNARY) {
-        print_indent(indent_level);
-        printf("Operator: %s\n", node->Node_Unary.operator);
-        print_indent(indent_level);
+        printf(", Operator '%s'\n", node->Node_Unary.operator);
+        print_indent(indent_level + 1);
         printf("Right:\n");
         print_ast_node(node->Node_Unary.right, indent_level + 1);
     }
     else if (node->kind == NODE_BINARY) {
-        print_indent(indent_level);
-        printf("Operator: %s\n", node->Node_Binary.operator);
-        print_indent(indent_level);
+        printf(", Operator: '%s'\n", node->Node_Binary.operator);
+        print_indent(indent_level + 1);
         printf("Left:\n");
         print_ast_node(node->Node_Binary.left, indent_level + 1);
-        print_indent(indent_level);
+        print_indent(indent_level + 1);
         printf("Right:\n");
         print_ast_node(node->Node_Binary.right, indent_level + 1);
     }
     else if (node->kind == NODE_RETURN) {
-        print_indent(indent_level);
+        printf("\n");
+        print_indent(indent_level + 1);
         printf("Expression:\n");
         print_ast_node(node->Node_Return.expr, indent_level + 1);
     }
     else if (node->kind == NODE_PROGRAM) {
-        print_indent(indent_level);
-        printf("Filepath: %s\n", node->Node_Program.filepath);
-        print_indent(indent_level);
+        printf(", Filepath: %s\n", node->Node_Program.filepath);
+        print_indent(indent_level + 1);
         printf("Block:\n");
         print_node_list(node->Node_Program.block, indent_level + 1);
     }
@@ -81,6 +76,7 @@ void print_ast_node(Node* node, int indent_level) {
         print_indent(indent_level);
         printf("Unknown node type\n");
     }
+
 }
 
 // Usage example
