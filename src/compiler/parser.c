@@ -5,6 +5,8 @@
 
 // TODO - add parent attribute to the Node struct
 
+// TODO - make binary parser return a List* of binary nodes
+
 Node* parse_expression(List* errors, List* tokens, size_t* i, char* filepath);
 
 Node* parse_integer (List* errors, List* tokens, size_t* i, char* filepath) {
