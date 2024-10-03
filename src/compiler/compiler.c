@@ -163,8 +163,8 @@ void compile_file (char* filepath) {
     printf("\n---------------------------------\n");
     printf("Program:\n---------------------------------\n");
     print_ast(program);
-    printf("\nErrors:\n");
-    
+
+    generate_code(program, filepath);    
 
     end = clock();
     cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC * 1000;

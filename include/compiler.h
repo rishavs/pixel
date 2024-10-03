@@ -106,5 +106,7 @@ bool read_file (List*, char**, char*);
 bool lex_file (List* errors, List* tokens, char* src, char* filepath);
 
 bool parse_file(List* errors, Node* program, List* tokens, char* filepath);
+void generate_code (Node* program, char* filepath);
+
 
 #endif // PIXEL_COMPILER_H

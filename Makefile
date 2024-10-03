@@ -15,7 +15,8 @@ SOURCE_FILES = \
 	src/compiler/compiler.c \
 	src/compiler/reader.c \
 	src/compiler/lexer.c \
-	src/compiler/parser.c 
+	src/compiler/parser.c \
+	src/compiler/codegen.c
 
 # Default target
 all: build

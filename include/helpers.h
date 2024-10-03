@@ -1,7 +1,6 @@
 #ifndef PIXEL_HELPERS_H
 #define PIXEL_HELPERS_H
 
-char* join_dyn_strings(char* s1, char* s2);
-
+char* join_strings(const char* first, ...);
 
 #endif // PIXEL_HELPERS_H
