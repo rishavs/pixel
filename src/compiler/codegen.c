@@ -71,7 +71,7 @@ char* generate_indent(Codegen_context* ctx) {
     }
     indent[0] = '\0'; // Initialize the string
     for (int i = 0; i < ctx->indent_level; i++) {
-        strcat(indent, "  ");  
+        strcat(indent, "    ");  
     }
     return indent;
 }
@@ -141,7 +141,9 @@ char* generate_decimal (Codegen_context* ctx, Node* dec_node) {
     return dec_node->Node_Decimal.value;
 }
 char* generate_unary_expression(Codegen_context* ctx, Node* unary_expr) {
-    return unary_expr->Node_Unary.operator;
+    char* operator = unary_expr->Node_Unary.operator;
+    char* right = generate_expression(ctx, unary_expr->Node_Unary.right);
+    return join_strings(4, "(", operator, right, ")");
 }
 char* generate_binary_expression(Codegen_context* ctx, Node* binary_expr) {
     char* operator = binary_expr->Node_Binary.operator;
@@ -175,23 +177,31 @@ char* generate_return_statement(Codegen_context* ctx, Node* ret_stmt) {
     return join_strings(4, generate_indent(ctx), "return ", expr, ";");
 }
 
-char* generate_statements(Codegen_context* ctx, Node* stmt) {
+char* generate_statement(Codegen_context* ctx, Node* stmt) {
     switch (stmt->kind) {
         case NODE_RETURN:
             return generate_return_statement(ctx, stmt);
         default:
             perror("Codegen failed. Unknown statement type");
-            return NULL;
+            exit(EXIT_FAILURE);
     }
 }
 
 // scope boundary
 char* generate_block(Codegen_context* ctx, List* stmts) {
     char* block = "";
+
+    // Increase the indentation level on block start
+    ctx->indent_level++;
+
     for (size_t i = 0; i < stmts->length; i++) {
-        char* stmt = generate_statements(ctx, stmts->items[i]);
+        char* stmt = generate_statement(ctx, stmts->items[i]);
         block = join_strings(3, block, stmt, "\n");
     }
+
+    // Decrease the indentation level on block end
+    ctx->indent_level--;
+    
     return block;
 }
 
@@ -212,6 +222,7 @@ char* generate_headers (Codegen_context* ctx) {
     if (ctx->c_string)  headers = join_strings(2, headers, "#include <string.h>\n");
     if (ctx->c_stdint)  headers = join_strings(2, headers, "#include <stdint.h>\n");
 
+    headers = join_strings(2, headers, "\n");
     printf("Headers have been generated\n");
 
     return headers;
