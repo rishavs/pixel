@@ -101,6 +101,7 @@ Node* parse_unary_expression(List* errors, List* tokens, size_t* i, char* filepa
         return expr;
     }
 }
+
 Node* parse_binary_expression(List* errors, List* tokens, size_t* i, char* filepath) {
     Node* left = parse_unary_expression(errors, tokens, i, filepath);
     if (!left) {
@@ -130,13 +131,13 @@ Node* parse_binary_expression(List* errors, List* tokens, size_t* i, char* filep
         binary_node->kind = NODE_BINARY;
         binary_node->line = op_token->line;
         binary_node->pos = op_token->pos;
-        binary_node->Node_Binary.left = left;
-        binary_node->Node_Binary.right = right;
         binary_node->Node_Binary.operator = op_token->value;
+        binary_node->Node_Binary.expressions = list_init("List<Node>");
 
-        left = binary_node; // Update the left operand for the next iteration
+        list_push(binary_node->Node_Binary.expressions, left); // Add left expression to the list
+        list_push(binary_node->Node_Binary.expressions, right); // Add right expression to the list
 
-        // Check for additional binary operators and create new binary expression nodes
+        // Check for additional binary operators and add new expressions to the list
         while (*i < tokens->length) {
             Token* nxt_tok = tokens->items[*i];
             if (
@@ -151,37 +152,24 @@ Node* parse_binary_expression(List* errors, List* tokens, size_t* i, char* filep
                 }
                 
                 (*i)++;
-                Node* next_right = parse_unary_expression(errors, tokens, i, filepath);
-                if (!next_right) {
+                Node* next_expr = parse_unary_expression(errors, tokens, i, filepath);
+                if (!next_expr) {
                     perror("Failed to parse unary expression in the while loop of the binary expression");
                     return NULL;
                 }
 
-                // Create a new binary expression node and make the previous binary node its left child
-                Node* new_binary_node = (Node*)malloc(sizeof(Node));
-                if (!new_binary_node) {
-                    perror("Failed to allocate memory for binary expression node");
-                    exit(EXIT_FAILURE);
-                }
-
-                new_binary_node->kind = NODE_BINARY;
-                new_binary_node->line = nxt_tok->line;
-                new_binary_node->pos = nxt_tok->pos;
-                new_binary_node->Node_Binary.left = left; // Use the previous binary node as the left operand
-                new_binary_node->Node_Binary.right = next_right;
-                new_binary_node->Node_Binary.operator = nxt_tok->value;
-
-                left = new_binary_node; // Update the left operand for the next iteration
+                list_push(binary_node->Node_Binary.expressions, next_expr); // Add next expression to the list
             } else {
                 break;
             }
         }
 
-        return left; // Return the last binary node created
+        return binary_node; // Return the binary node with the list of expressions
     }
 
     return left;
 }
+
 Node* parse_expression(List* errors, List* tokens, size_t* i, char* filepath) {
     if (*i >= tokens->length) {
         size_t lastLine = ((Token*)tokens->items[tokens->length - 1])->line;

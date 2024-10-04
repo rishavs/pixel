@@ -96,7 +96,7 @@ struct Node {
         struct { char* value; } Node_Integer;
         struct { char* value; } Node_Decimal;
         struct { char* operator; struct Node *right; } Node_Unary;
-        struct { char* operator; struct Node *left; struct Node *right; } Node_Binary;
+        struct { char* operator; List* expressions; } Node_Binary;
         struct { struct Node *expr; } Node_Return;
         struct { char* filepath; struct List* block; } Node_Program;
     };

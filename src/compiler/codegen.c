@@ -90,13 +90,13 @@ char* generate_unary_expression(Codegen_context* ctx, Node* unary_expr) {
 }
 char* generate_binary_expression(Codegen_context* ctx, Node* binary_expr) {
     char* operator = binary_expr->Node_Binary.operator;
-    char* left = generate_expression(ctx, binary_expr->Node_Binary.left);
-    char* right = generate_expression(ctx, binary_expr->Node_Binary.right);
-
-    if(left == NULL) perror("Left expression is NULL");
-    if(right == NULL) perror("Right expression is NULL");
-    
-    return join_strings(7,  "(", left, " ", operator, " ", right, ")");
+    char* result = generate_expression(ctx, binary_expr->Node_Binary.expressions->items[0]);
+    for (size_t i = 1; i < binary_expr->Node_Binary.expressions->length; i++) {
+        char* expr = generate_expression(ctx, binary_expr->Node_Binary.expressions->items[i]);
+        result = join_strings(5, result, " ", operator, " ", expr);
+    }
+    result = join_strings(3, "(", result, ")");
+    return result;
 }
 
 char* generate_expression(Codegen_context* ctx, Node* expr) {

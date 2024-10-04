@@ -54,11 +54,8 @@ void print_ast_node(Node* node, int indent_level) {
     else if (node->kind == NODE_BINARY) {
         printf(", Operator: '%s'\n", node->Node_Binary.operator);
         print_indent(indent_level + 1);
-        printf("Left:\n");
-        print_ast_node(node->Node_Binary.left, indent_level + 1);
-        print_indent(indent_level + 1);
-        printf("Right:\n");
-        print_ast_node(node->Node_Binary.right, indent_level + 1);
+        printf("Expressions:\n");
+        print_node_list(node->Node_Binary.expressions, indent_level + 1);
     }
     else if (node->kind == NODE_RETURN) {
         printf("\n");
