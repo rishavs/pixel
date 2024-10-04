@@ -1,10 +1,10 @@
-
 #include "ast.h"
 #include "pixel.h"
 #include "compiler.h"
 
 typedef struct {
     int current_depth;
+    Node* current_scope_owner; // who owns the statement block/scope
 
     List* errors;
     List* tokens;
@@ -13,7 +13,6 @@ typedef struct {
     size_t i;
 
 } Parsing_context;
-
 
 Node* parse_expression(Parsing_context* ctx);
 
@@ -28,6 +27,8 @@ Node* parse_integer (Parsing_context* ctx) {
     int_node->Node_Integer.value = token->value;
     int_node->line = token->line;
     int_node->pos = token->pos;
+    int_node->depth = ctx->current_depth;
+    int_node->scope_owner = ctx->current_scope_owner;
 
     ctx->i ++;
     return int_node;
@@ -44,6 +45,8 @@ Node* parse_decimal (Parsing_context* ctx) {
     dec_node->Node_Decimal.value = token->value;
     dec_node->line = token->line;
     dec_node->pos = token->pos;
+    dec_node->depth = ctx->current_depth;
+    dec_node->scope_owner = ctx->current_scope_owner;
 
     ctx->i ++;
     return dec_node;
@@ -59,7 +62,7 @@ Node* parse_grouped_expression(Parsing_context* ctx) {
         perror("Expected a closing parenthesis");
         return NULL;
     }
-    (ctx->i)++; // Consume ')'
+    ctx->i ++; // Consume ')'
     return expr;
 }
 
@@ -83,7 +86,7 @@ Node* parse_unary_expression(Parsing_context* ctx) {
     if (
         token->kind == TOKEN_MINUS || token->kind == TOKEN_NOT
     ) {
-        (ctx->i)++;
+        ctx->i ++;
         Node* unr_expr = parse_primary_expression(ctx);
         if (!unr_expr) {
             perror("Failed to parse primary expression in the unary function");
@@ -94,11 +97,15 @@ Node* parse_unary_expression(Parsing_context* ctx) {
             perror("Failed to allocate memory for unary expression node");
             exit(EXIT_FAILURE);
         }
+        unr_expr->parent = unary_node;
+
         unary_node->kind = NODE_UNARY;
         unary_node->line = token->line;
         unary_node->pos = token->pos;
         unary_node->Node_Unary.right = unr_expr;
         unary_node->Node_Unary.operator = token->value;
+        unary_node->depth = ctx->current_depth;
+        unary_node->scope_owner = ctx->current_scope_owner;
 
         return unary_node;
     } else {
@@ -124,7 +131,7 @@ Node* parse_binary_expression(Parsing_context* ctx) {
         op_token->kind == TOKEN_PLUS || op_token->kind == TOKEN_MINUS ||
         op_token->kind == TOKEN_ASTERISK || op_token->kind == TOKEN_FWD_SLASH
     ) {
-        (ctx->i)++;
+        ctx->i ++;
         Node* right = parse_unary_expression(ctx);
         if (!right) {
             perror("Failed to parse unary expression in binary expression");
@@ -136,12 +143,16 @@ Node* parse_binary_expression(Parsing_context* ctx) {
             perror("Failed to allocate memory for binary expression node");
             exit(EXIT_FAILURE);
         }
+        left->parent = binary_node;
+        right->parent = binary_node;
 
         binary_node->kind = NODE_BINARY;
         binary_node->line = op_token->line;
         binary_node->pos = op_token->pos;
         binary_node->Node_Binary.operator = op_token->value;
         binary_node->Node_Binary.expressions = list_init("List<Node>");
+        binary_node->depth = ctx->current_depth;
+        binary_node->scope_owner = ctx->current_scope_owner;
 
         list_push(binary_node->Node_Binary.expressions, left); // Add left expression to the list
         list_push(binary_node->Node_Binary.expressions, right); // Add right expression to the list
@@ -160,7 +171,7 @@ Node* parse_binary_expression(Parsing_context* ctx) {
                     return NULL;
                 }
                 
-                (ctx->i)++;
+                ctx->i ++;
                 Node* next_expr = parse_unary_expression(ctx);
                 if (!next_expr) {
                     perror("Failed to parse unary expression in the while loop of the binary expression");
@@ -216,12 +227,15 @@ Node* parse_return(Parsing_context* ctx) {
         perror("Failed to allocate memory for return statement");
         exit(EXIT_FAILURE);
     }
+    expr_node->parent = ret_node;
+
     ret_node->kind = NODE_RETURN;
     ret_node->line = expr_node->line;
     ret_node->pos = expr_node->pos;
     ret_node->Node_Return.expr = expr_node;
 
-    expr_node->parent = ret_node;
+    ret_node->depth = ctx->current_depth;
+    ret_node->scope_owner = ctx->current_scope_owner;
 
     return ret_node;
 }
@@ -278,11 +292,12 @@ bool parse_file(List* errors, Node* program, List* tokens, char* filepath) {
         perror("Failed to allocate memory for parser context");
         exit(EXIT_FAILURE);
     }
-    ctx->current_depth  = 0;
-    ctx->errors         = errors;
-    ctx->tokens         = tokens;
-    ctx->filepath       = filepath;
-    ctx->i              = 0;
+    ctx->current_depth          = 0;
+    ctx->errors                 = errors;
+    ctx->tokens                 = tokens;
+    ctx->filepath               = filepath;
+    ctx->i                      = 0;
+    ctx->current_scope_owner    = program;
 
     List* statements = parse_block(ctx);
     for (size_t j = 0; j < statements->length; j++) {
