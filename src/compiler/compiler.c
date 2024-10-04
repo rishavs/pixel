@@ -36,7 +36,7 @@ void print_ast_node(Node* node, int indent_level) {
     }
 
     print_indent(indent_level);
-    printf("%s : line %zu, pos %zu", NodeKindStrings[node->kind], node->line, node->pos);
+    printf("%s : line %zu, pos %zu, parent: %s, depth: %d", NodeKindStrings[node->kind], node->line, node->pos, node->parent ? NodeKindStrings[node->parent->kind] : "" , node->depth);
 
     if (node->kind == NODE_INTEGER) {
         printf(", Value: %s\n", node->Node_Integer.value);
@@ -144,6 +144,8 @@ void compile_file (char* filepath) {
     program->kind = NODE_PROGRAM;
     program->line = 0;
     program->pos = 0;
+    program->parent = NULL;
+    program->depth = 0;
     program->Node_Program.filepath = filepath;
     program->Node_Program.block = NULL;
 

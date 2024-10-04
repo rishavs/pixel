@@ -3,14 +3,22 @@
 #include "pixel.h"
 #include "compiler.h"
 
-// TODO - add parent attribute to the Node struct
+typedef struct {
+    int current_depth;
 
-// TODO - make binary parser return a List* of binary nodes
+    List* errors;
+    List* tokens;
+    
+    char* filepath;
+    size_t i;
 
-Node* parse_expression(List* errors, List* tokens, size_t* i, char* filepath);
+} Parsing_context;
 
-Node* parse_integer (List* errors, List* tokens, size_t* i, char* filepath) {
-    Token* token = tokens->items[*i];
+
+Node* parse_expression(Parsing_context* ctx);
+
+Node* parse_integer (Parsing_context* ctx) {
+    Token* token = ctx->tokens->items[ctx->i];
     Node* int_node = (Node*)malloc(sizeof(Node));
     if (!int_node) {
         perror("Failed to allocate memory for integer node");
@@ -21,11 +29,12 @@ Node* parse_integer (List* errors, List* tokens, size_t* i, char* filepath) {
     int_node->line = token->line;
     int_node->pos = token->pos;
 
-    (*i)++;
+    ctx->i ++;
     return int_node;
 };
-Node* parse_decimal (List* errors, List* tokens, size_t* i, char* filepath) {
-    Token* token = tokens->items[*i];
+
+Node* parse_decimal (Parsing_context* ctx) {
+    Token* token = ctx->tokens->items[ctx->i];
     Node* dec_node = (Node*)malloc(sizeof(Node));
     if (!dec_node) {
         perror("Failed to allocate memory for integer node");
@@ -36,46 +45,46 @@ Node* parse_decimal (List* errors, List* tokens, size_t* i, char* filepath) {
     dec_node->line = token->line;
     dec_node->pos = token->pos;
 
-    (*i)++;
+    ctx->i ++;
     return dec_node;
 };
 
-Node* parse_grouped_expression(List* errors, List* tokens, size_t* i, char* filepath) {
-    (*i)++; // Consume '('
-    Node* expr = parse_expression(errors, tokens, i, filepath);
+Node* parse_grouped_expression(Parsing_context* ctx) {
+    ctx->i ++; // Consume '('
+    Node* expr = parse_expression(ctx);
     if (!expr) return NULL;
-    Token* token = tokens->items[*i];
+    Token* token = ctx->tokens->items[ctx->i];
     if (token->kind != TOKEN_RPAREN) {
-        add_error_to_list(errors, "SyntaxError", "Unmatched Parentheses", "Expected a closing parenthesis", filepath, token->line, token->pos, __FILE__, __LINE__);
+        add_error_to_list(ctx->errors, "SyntaxError", "Unmatched Parentheses", "Expected a closing parenthesis", ctx->filepath, token->line, token->pos, __FILE__, __LINE__);
         perror("Expected a closing parenthesis");
         return NULL;
     }
-    (*i)++; // Consume ')'
+    (ctx->i)++; // Consume ')'
     return expr;
 }
 
-Node* parse_primary_expression(List* errors, List* tokens, size_t* i, char* filepath) {
-    Token* token = tokens->items[*i];
+Node* parse_primary_expression(Parsing_context* ctx) {
+    Token* token = ctx->tokens->items[ctx->i];
     if (token->kind == TOKEN_INTEGER) {
-        return parse_integer(errors, tokens, i, filepath);
+        return parse_integer(ctx);
     } else if (token->kind == TOKEN_DECIMAL) {
-        return parse_decimal(errors, tokens, i, filepath);
+        return parse_decimal(ctx);
     } else if (token->kind == TOKEN_LPAREN) {
-        return parse_grouped_expression(errors, tokens, i, filepath);
+        return parse_grouped_expression(ctx);
     } else {
-        add_error_to_list(errors, "SyntaxError", "Invalid Expression", "Expected an expression", filepath, token->line, token->pos, __FILE__, __LINE__);
+        add_error_to_list(ctx->errors, "SyntaxError", "Invalid Expression", "Expected an expression", ctx->filepath, token->line, token->pos, __FILE__, __LINE__);
         perror("Expected a primary expression in the primary expression function");
         return NULL;
     }
 }
 
-Node* parse_unary_expression(List* errors, List* tokens, size_t* i, char* filepath) {
-    Token* token = tokens->items[*i];
+Node* parse_unary_expression(Parsing_context* ctx) {
+    Token* token = ctx->tokens->items[ctx->i];
     if (
         token->kind == TOKEN_MINUS || token->kind == TOKEN_NOT
     ) {
-        (*i)++;
-        Node* unr_expr = parse_primary_expression(errors, tokens, i, filepath);
+        (ctx->i)++;
+        Node* unr_expr = parse_primary_expression(ctx);
         if (!unr_expr) {
             perror("Failed to parse primary expression in the unary function");
             return NULL;
@@ -93,7 +102,7 @@ Node* parse_unary_expression(List* errors, List* tokens, size_t* i, char* filepa
 
         return unary_node;
     } else {
-        Node* expr = parse_primary_expression(errors, tokens, i, filepath);
+        Node* expr = parse_primary_expression(ctx);
         if (!expr) {
             perror("Failed to parse primary expression in the else branch of unary function");
             return NULL;
@@ -102,21 +111,21 @@ Node* parse_unary_expression(List* errors, List* tokens, size_t* i, char* filepa
     }
 }
 
-Node* parse_binary_expression(List* errors, List* tokens, size_t* i, char* filepath) {
-    Node* left = parse_unary_expression(errors, tokens, i, filepath);
+Node* parse_binary_expression(Parsing_context* ctx) {
+    Node* left = parse_unary_expression(ctx);
     if (!left) {
         perror("Failed to parse the left unary expression in binary expression");
         return NULL;
     }
-    if (*i >= tokens->length) return left;
+    if (ctx->i >= ctx->tokens->length) return left;
 
-    Token* op_token = tokens->items[*i];
+    Token* op_token = ctx->tokens->items[ctx->i];
     if (
         op_token->kind == TOKEN_PLUS || op_token->kind == TOKEN_MINUS ||
         op_token->kind == TOKEN_ASTERISK || op_token->kind == TOKEN_FWD_SLASH
     ) {
-        (*i)++;
-        Node* right = parse_unary_expression(errors, tokens, i, filepath);
+        (ctx->i)++;
+        Node* right = parse_unary_expression(ctx);
         if (!right) {
             perror("Failed to parse unary expression in binary expression");
             return NULL;
@@ -138,21 +147,21 @@ Node* parse_binary_expression(List* errors, List* tokens, size_t* i, char* filep
         list_push(binary_node->Node_Binary.expressions, right); // Add right expression to the list
 
         // Check for additional binary operators and add new expressions to the list
-        while (*i < tokens->length) {
-            Token* nxt_tok = tokens->items[*i];
+        while (ctx->i < ctx->tokens->length) {
+            Token* nxt_tok = ctx->tokens->items[ctx->i];
             if (
                 nxt_tok->kind == TOKEN_PLUS || nxt_tok->kind == TOKEN_MINUS ||
                 nxt_tok->kind == TOKEN_ASTERISK || nxt_tok->kind == TOKEN_FWD_SLASH
             ) {
                 if (strcmp(op_token->value, nxt_tok->value) != 0) {
                     // If the operators are different, throw an error
-                    add_error_to_list(errors, "SyntaxError", "Mixed Binary Operators", "Cannot mix different binary operators without parentheses", filepath, nxt_tok->line, nxt_tok->pos, __FILE__, __LINE__);
+                    add_error_to_list(ctx->errors, "SyntaxError", "Mixed Binary Operators", "Cannot mix different binary operators without parentheses", ctx->filepath, nxt_tok->line, nxt_tok->pos, __FILE__, __LINE__);
                     perror("Cannot mix different binary operators without parentheses");
                     return NULL;
                 }
                 
-                (*i)++;
-                Node* next_expr = parse_unary_expression(errors, tokens, i, filepath);
+                (ctx->i)++;
+                Node* next_expr = parse_unary_expression(ctx);
                 if (!next_expr) {
                     perror("Failed to parse unary expression in the while loop of the binary expression");
                     return NULL;
@@ -170,33 +179,33 @@ Node* parse_binary_expression(List* errors, List* tokens, size_t* i, char* filep
     return left;
 }
 
-Node* parse_expression(List* errors, List* tokens, size_t* i, char* filepath) {
-    if (*i >= tokens->length) {
-        size_t lastLine = ((Token*)tokens->items[tokens->length - 1])->line;
-        size_t lastPos = ((Token*)tokens->items[tokens->length - 1])->pos;
-        add_error_to_list(errors, "SyntaxError", "Incomplete Expression", "Expected an expression", filepath, lastLine, lastPos, __FILE__, __LINE__);
+Node* parse_expression(Parsing_context* ctx) {
+    if (ctx->i >= ctx->tokens->length) {
+        size_t lastLine = ((Token*)ctx->tokens->items[ctx->tokens->length - 1])->line;
+        size_t lastPos = ((Token*)ctx->tokens->items[ctx->tokens->length - 1])->pos;
+        add_error_to_list(ctx->errors, "SyntaxError", "Incomplete Expression", "Expected an expression", ctx->filepath, lastLine, lastPos, __FILE__, __LINE__);
         perror("Expected an expression");
         return NULL;
     }
-    Node* binary_expr = parse_binary_expression(errors, tokens, i, filepath);
+    Node* binary_expr = parse_binary_expression(ctx);
 
     return binary_expr;
 }
 
 
-Node* parse_return(List* errors, List* tokens, size_t* i, char* filepath) {
-    (*i)++;  // Consume 'return'
+Node* parse_return(Parsing_context* ctx) {
+    ctx->i++;  // Consume 'return'
 
-    if (*i >= tokens->length) {
-        size_t lastLine = ((Token*)tokens->items[tokens->length - 1])->line;
-        size_t lastPos = ((Token*)tokens->items[tokens->length - 1])->pos;
+    if (ctx->i >= ctx->tokens->length) {
+        size_t lastLine = ((Token*)ctx->tokens->items[ctx->tokens->length - 1])->line;
+        size_t lastPos = ((Token*)ctx->tokens->items[ctx->tokens->length - 1])->pos;
         
-        add_error_to_list(errors, "SyntaxError", "Incomplete Return Statement", "Expected an expression after the 'return' statement", filepath, lastLine, lastPos, __FILE__, __LINE__);
+        add_error_to_list(ctx->errors, "SyntaxError", "Incomplete Return Statement", "Expected an expression after the 'return' statement", ctx->filepath, lastLine, lastPos, __FILE__, __LINE__);
         perror("Expected an expression after the 'return' statement");
         return NULL;
     }
 
-    Node* expr_node = parse_expression(errors, tokens, i, filepath);
+    Node* expr_node = parse_expression(ctx);
     if (!expr_node) {
         perror("Failed to parse expression in return statement");
         return NULL;
@@ -212,20 +221,25 @@ Node* parse_return(List* errors, List* tokens, size_t* i, char* filepath) {
     ret_node->pos = expr_node->pos;
     ret_node->Node_Return.expr = expr_node;
 
+    expr_node->parent = ret_node;
+
     return ret_node;
 }
 
-List* parse_block(List* errors, List* tokens, size_t* i, char* filepath) {
+List* parse_block(Parsing_context* ctx) {
     List* block = list_init("List<Node>");
 
     bool in_recovery_loop = false;
 
-    while (*i < tokens->length) {
-        Token* token = tokens->items[*i];
+    // increment the depth
+    ctx->current_depth++;
+
+    while (ctx->i < ctx->tokens->length) {
+        Token* token =  ctx->tokens->items[ctx->i];
 
         if (token->kind == TOKEN_RETURN) {
             in_recovery_loop = false;
-            Node* ret_node = parse_return(errors, tokens, i, filepath);
+            Node* ret_node = parse_return(ctx);
             if (!ret_node) {
                 in_recovery_loop = true;
                 return block;
@@ -245,21 +259,38 @@ List* parse_block(List* errors, List* tokens, size_t* i, char* filepath) {
                 }
                 snprintf(err_msg, msg_len, "%s%s", msg, token->value);
                 perror(err_msg);
-                add_error_to_list(errors, "SyntaxError", "Unexpected Token", err_msg,  filepath, token->line, token->pos, __FILE__, __LINE__);
+                add_error_to_list(ctx->errors, "SyntaxError", "Unexpected Token", err_msg,  ctx->filepath, token->line, token->pos, __FILE__, __LINE__);
             }
-            (*i)++;
+            ctx->i++;
         }
     }
+    // decrement the depth
+    ctx->current_depth--;
+
     return block;
 }
 
 bool parse_file(List* errors, Node* program, List* tokens, char* filepath) {
-    bool ok = false;
-    size_t i = 0;
-
     size_t current_error_count = errors->length;
 
-    List* statements = parse_block(errors, tokens, &i, filepath);
+    Parsing_context* ctx = (Parsing_context*)malloc(sizeof(Parsing_context));
+    if (!ctx) {
+        perror("Failed to allocate memory for parser context");
+        exit(EXIT_FAILURE);
+    }
+    ctx->current_depth  = 0;
+    ctx->errors         = errors;
+    ctx->tokens         = tokens;
+    ctx->filepath       = filepath;
+    ctx->i              = 0;
+
+    List* statements = parse_block(ctx);
+    for (size_t j = 0; j < statements->length; j++) {
+        Node* stmt = statements->items[j];
+        stmt->parent = program;
+        stmt->depth = 1;
+    }
+
     printf("\nNumber of Statements: %zu\n", statements->length);
     program->Node_Program.block = statements;
 

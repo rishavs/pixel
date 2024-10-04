@@ -92,6 +92,7 @@ struct Node {
     size_t      pos;
     size_t      line;
     Node*       parent;
+    int         depth;
     union {
         struct { char* value; } Node_Integer;
         struct { char* value; } Node_Decimal;
