@@ -5,6 +5,8 @@
 
 #include "ast.h"
 #include "compiler.h"
+#include "helpers.h"
+
 
 typedef struct {
     int indent_level;

@@ -10,6 +10,7 @@ COMPILER_WARNINGS = -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter
 INCLUDES = -I$(HEADERS_FOLDER)
 SOURCE_FILES = \
 	src/compiler/errors.c \
+	src/compiler/helpers.c \
 	src/core/list.c \
 	src/core/bag.c \
 	src/compiler/compiler.c \
