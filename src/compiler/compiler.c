@@ -57,6 +57,20 @@ void print_ast_node(Node* node, int indent_level) {
         printf("Expressions:\n");
         print_node_list(node->Node_Binary.expressions, indent_level + 1);
     }
+    else if (node->kind == NODE_DECLARATION) {
+        printf("\n");
+        print_indent(indent_level + 1);
+        printf("Identifier: %s\n", node->Node_Declaration.identifier->Node_Identifier.value);
+        if (node->Node_Declaration.is_new) {
+            print_indent(indent_level + 1);
+            printf("IS_NEW\n");
+        }
+        if (node->Node_Declaration.is_assignment) {
+            print_indent(indent_level + 1);
+            printf("Expression:\n");
+            print_ast_node(node->Node_Declaration.expr, indent_level + 1);
+        }
+    }
     else if (node->kind == NODE_RETURN) {
         printf("\n");
         print_indent(indent_level + 1);

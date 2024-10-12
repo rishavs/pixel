@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stddef.h>
+#include <stdbool.h>
 
 #include "pixel.h"
 #include "ast.h"
@@ -28,17 +29,21 @@ void add_error_to_list(List* CompilerErrors, char* category, char* header, char*
     X(TOKEN_ILLEGAL)    \
     X(TOKEN_WHITESPACE) \
     X(TOKEN_EOF)        \
+    X(TOKEN_ASSIGN)     \
     X(TOKEN_PLUS)       \
     X(TOKEN_MINUS)      \
     X(TOKEN_ASTERISK)   \
     X(TOKEN_FWD_SLASH)  \
     X(TOKEN_NOT)        \
-    X(TOKEN_ID)         \
+    X(TOKEN_IDENTIFIER) \
     X(TOKEN_INTEGER)    \
     X(TOKEN_DECIMAL)    \
     X(TOKEN_RETURN)     \
     X(TOKEN_LPAREN)     \
-    X(TOKEN_RPAREN)
+    X(TOKEN_RPAREN)     \
+    X(TOKEN_LET)        \
+    X(TOKEN_CONST)      \
+    X(TOKEN_VAR)
 
 // Generate the enum using the macro
 typedef enum {
@@ -66,8 +71,10 @@ typedef struct Token {
 #define NODE_KINDS      \
     X(NODE_INTEGER)     \
     X(NODE_DECIMAL)     \
+    X(NODE_IDENTIFIER)  \
     X(NODE_UNARY)       \
     X(NODE_BINARY)      \
+    X(NODE_DECLARATION) \
     X(NODE_RETURN)      \
     X(NODE_PROGRAM)
 
@@ -99,8 +106,10 @@ struct Node {
     union {
         struct { char* value; } Node_Integer;
         struct { char* value; } Node_Decimal;
+        struct { char* value; } Node_Identifier;
         struct { char* operator; struct Node *right; } Node_Unary;
-        struct { char* operator; List* expressions; } Node_Binary;
+        struct { char* operator; List* expressions; } Node_Binary; // can a qualified chain just be binary?
+        struct { bool is_var; bool is_new; bool is_assignment; Node* identifier; struct Node* expr; } Node_Declaration;
         struct { struct Node *expr; } Node_Return;
         struct { char* filepath; struct List* block; } Node_Program;
     };

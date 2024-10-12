@@ -52,6 +52,24 @@ Node* parse_decimal (Parsing_context* ctx) {
     return dec_node;
 };
 
+Node* parse_identifier (Parsing_context* ctx) {
+    Token* token = ctx->tokens->items[ctx->i];
+    Node* ident_node = (Node*)malloc(sizeof(Node));
+    if (!ident_node) {
+        perror("Failed to allocate memory for identifier node");
+        exit(EXIT_FAILURE);
+    }
+    ident_node->kind = NODE_IDENTIFIER;
+    ident_node->Node_Identifier.value = token->value;
+    ident_node->line = token->line;
+    ident_node->pos = token->pos;
+    ident_node->depth = ctx->current_depth;
+    ident_node->scope_owner = ctx->current_scope_owner;
+
+    ctx->i ++;
+    return ident_node;
+};
+
 Node* parse_grouped_expression(Parsing_context* ctx) {
     ctx->i ++; // Consume '('
     Node* expr = parse_expression(ctx);
@@ -74,6 +92,8 @@ Node* parse_primary_expression(Parsing_context* ctx) {
         return parse_decimal(ctx);
     } else if (token->kind == TOKEN_LPAREN) {
         return parse_grouped_expression(ctx);
+    } else if (token->kind == TOKEN_IDENTIFIER) {
+        return parse_identifier(ctx);
     } else {
         add_error_to_list(ctx->errors, "SyntaxError", "Invalid Expression", "Expected an expression", ctx->filepath, token->line, token->pos, __FILE__, __LINE__);
         perror("Expected a primary expression in the primary expression function");
@@ -203,6 +223,62 @@ Node* parse_expression(Parsing_context* ctx) {
     return binary_expr;
 }
 
+Node* parse_declaration(Parsing_context* ctx) {
+    Token* token = ctx->tokens->items[ctx->i];
+
+    Node* decl_node = (Node*)malloc(sizeof(Node));
+    if (!decl_node) {
+        perror("Failed to allocate memory for declaration node");
+        exit(EXIT_FAILURE);
+    }
+    decl_node->kind = NODE_DECLARATION;
+    decl_node->line = token->line;
+    decl_node->pos = token->pos;
+    decl_node->depth = ctx->current_depth;
+    decl_node->scope_owner = ctx->current_scope_owner;
+
+    if (token->kind == TOKEN_LET) {
+        decl_node->Node_Declaration.is_new = true;
+        ctx->i++; // Consume 'let'
+        token = ctx->tokens->items[ctx->i];
+    }
+
+    if (token->kind == TOKEN_VAR) {
+        decl_node->Node_Declaration.is_var = true;
+        ctx->i++; // Consume 'var'
+        token = ctx->tokens->items[ctx->i];
+    }
+
+    if (token->kind != TOKEN_IDENTIFIER) {
+        add_error_to_list(ctx->errors, "SyntaxError", "Invalid Declaration", "Expected an identifier in the declaration", ctx->filepath, token->line, token->pos, __FILE__, __LINE__);
+    }
+
+    Node* ident_node = parse_identifier(ctx);
+    if (!ident_node) {
+        perror("Failed to parse identifier in declaration");
+        return NULL;
+    }
+    decl_node->Node_Declaration.identifier = ident_node;
+    token = ctx->tokens->items[ctx->i];
+
+    // if there is an assignment operator, parse the expression
+    // else return the declaration node
+
+    if (token->kind != TOKEN_ASSIGN) {
+        decl_node->Node_Declaration.is_assignment = false;
+        return decl_node;
+    }
+
+    decl_node->Node_Declaration.is_assignment = true;
+    ctx->i++; // Consume '='
+    Node* expr_node = parse_expression(ctx);
+    if (!expr_node) {
+        perror("Failed to parse expression in declaration");
+        return NULL;
+    }
+    decl_node->Node_Declaration.expr = expr_node;
+    return decl_node;
+}
 
 Node* parse_return(Parsing_context* ctx) {
     ctx->i++;  // Consume 'return'
@@ -249,10 +325,27 @@ List* parse_block(Parsing_context* ctx) {
     ctx->current_depth++;
 
     while (ctx->i < ctx->tokens->length) {
-        Token* token =  ctx->tokens->items[ctx->i];
+        Token* token = ctx->tokens->items[ctx->i];
+        Token* next_token = ctx->i + 1 < ctx->tokens->length ? ctx->tokens->items[ctx->i + 1] : NULL;
+        in_recovery_loop = false;
 
-        if (token->kind == TOKEN_RETURN) {
-            in_recovery_loop = false;
+        if (token->kind == TOKEN_LET || token->kind == TOKEN_VAR) {
+            Node* decl_node = parse_declaration(ctx);
+            if (!decl_node) {
+                in_recovery_loop = true;
+                return block;
+            }
+            list_push(block, decl_node);
+
+        } else if (token->kind == TOKEN_IDENTIFIER && next_token && next_token->kind == TOKEN_ASSIGN) {
+            Node* decl_node = parse_declaration(ctx);
+            if (!decl_node) {
+                in_recovery_loop = true;
+                return block;
+            }
+            list_push(block, decl_node);
+
+        } else if (token->kind == TOKEN_RETURN) {
             Node* ret_node = parse_return(ctx);
             if (!ret_node) {
                 in_recovery_loop = true;

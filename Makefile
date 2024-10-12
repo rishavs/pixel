@@ -28,7 +28,7 @@ build:
 
 # Run target
 run: build
-	./bin/pixel run tests/inputs/first.pix
+	./bin/pixel run tests/inputs/third.pix
 
 # Test target
 test: 

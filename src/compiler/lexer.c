@@ -97,9 +97,17 @@ bool lex_file(List* errors, List* tokens, char* src, char* filepath) {
             }
 
         // Handle operators and symbols
+        } else if (starts_with(src, str_len, pos, "=")) {
+            t->kind = TOKEN_ASSIGN;
+            t->value = "=";
+            t->pos = pos;
+            t->line = line;
+            pos++;
+            list_push(tokens, t);
+        
         } else if (starts_with(src, str_len, pos, "-")) {
             t->kind = TOKEN_MINUS;
-            t->value = char_to_string(c);
+            t->value = "-";
             t->pos = pos;
             t->line = line;
             pos++;
@@ -107,7 +115,7 @@ bool lex_file(List* errors, List* tokens, char* src, char* filepath) {
         
         } else if (starts_with(src, str_len, pos, "+")) {
             t->kind = TOKEN_PLUS;
-            t->value = char_to_string(c);
+            t->value = "+";
             t->pos = pos;
             t->line = line;
             pos++;
@@ -115,7 +123,7 @@ bool lex_file(List* errors, List* tokens, char* src, char* filepath) {
 
         } else if (starts_with(src, str_len, pos, "*")) {
             t->kind = TOKEN_ASTERISK;
-            t->value = char_to_string(c);
+            t->value = "*";
             t->pos = pos;
             t->line = line;
             pos++;
@@ -123,7 +131,7 @@ bool lex_file(List* errors, List* tokens, char* src, char* filepath) {
         
         } else if (starts_with(src, str_len, pos, "/")) {
             t->kind = TOKEN_FWD_SLASH;
-            t->value = char_to_string(c);
+            t->value = "/";
             t->pos = pos;
             t->line = line;
             pos++;
@@ -131,7 +139,7 @@ bool lex_file(List* errors, List* tokens, char* src, char* filepath) {
 
         } else if (starts_with(src, str_len, pos, "(")) {
             t->kind = TOKEN_LPAREN;
-            t->value = char_to_string(c);
+            t->value = "(";
             t->pos = pos;
             t->line = line;
             pos++;
@@ -139,7 +147,7 @@ bool lex_file(List* errors, List* tokens, char* src, char* filepath) {
 
         } else if (starts_with(src, str_len, pos, ")")) {
             t->kind = TOKEN_RPAREN;
-            t->value = char_to_string(c);
+            t->value = ")";
             t->pos = pos;
             t->line = line;
             pos++;
@@ -179,8 +187,14 @@ bool lex_file(List* errors, List* tokens, char* src, char* filepath) {
             if (strcmp(buffer, "return") == 0) {
                 t->kind = TOKEN_RETURN;
                 t->value = buffer;
+            } else if (strcmp(buffer, "let") == 0) {
+                t->kind = TOKEN_LET;
+                t->value = buffer;
+            } else if (strcmp(buffer, "var") == 0) {
+                t->kind = TOKEN_VAR;
+                t->value = buffer;
             } else {
-                t->kind = TOKEN_ID;
+                t->kind = TOKEN_IDENTIFIER;
                 t->value = buffer;
             }
             t->pos = end;

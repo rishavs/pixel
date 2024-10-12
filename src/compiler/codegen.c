@@ -76,13 +76,17 @@ char* generate_filename (char* filepath, bool is_module) {
 
 char* generate_expression(Codegen_context* ctx, Node* expr);
 
-
 char* generate_integer (Codegen_context* ctx, Node* int_node) {
     return int_node->Node_Integer.value;
 }
 char* generate_decimal (Codegen_context* ctx, Node* dec_node) {
     return dec_node->Node_Decimal.value;
 }
+
+char* generate_identifier(Codegen_context* ctx, Node* ident_node) {
+    return ident_node->Node_Identifier.value;
+}
+
 char* generate_unary_expression(Codegen_context* ctx, Node* unary_expr) {
     char* operator = unary_expr->Node_Unary.operator;
     char* right = generate_expression(ctx, unary_expr->Node_Unary.right);
@@ -101,6 +105,8 @@ char* generate_binary_expression(Codegen_context* ctx, Node* binary_expr) {
 
 char* generate_expression(Codegen_context* ctx, Node* expr) {
     switch (expr->kind) {
+        case NODE_IDENTIFIER:
+            return generate_identifier(ctx, expr);
         case NODE_INTEGER:
             return generate_integer(ctx, expr);
         case NODE_DECIMAL:
@@ -115,6 +121,13 @@ char* generate_expression(Codegen_context* ctx, Node* expr) {
     }
 }
 
+// TODO - types!!!
+char* generate_declaration(Codegen_context* ctx, Node* decl_stmt) {
+    char* identifier = generate_identifier(ctx, decl_stmt->Node_Declaration.identifier);
+    char* expr = generate_expression(ctx, decl_stmt->Node_Declaration.expr);
+    return join_strings(6, generate_indent(ctx), "let ", identifier, " = ", expr, ";");
+}
+
 char* generate_return_statement(Codegen_context* ctx, Node* ret_stmt) {
     char* expr = generate_expression(ctx, ret_stmt->Node_Return.expr);
     return join_strings(4, generate_indent(ctx), "return ", expr, ";");
@@ -122,6 +135,8 @@ char* generate_return_statement(Codegen_context* ctx, Node* ret_stmt) {
 
 char* generate_statement(Codegen_context* ctx, Node* stmt) {
     switch (stmt->kind) {
+        case NODE_DECLARATION:
+            return generate_declaration(ctx, stmt);
         case NODE_RETURN:
             return generate_return_statement(ctx, stmt);
         default:
