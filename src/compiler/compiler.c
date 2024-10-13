@@ -45,6 +45,9 @@ void print_ast_node(Node* node, int indent_level) {
     else if (node->kind == NODE_DECIMAL || node->kind == NODE_INTEGER ) {
         printf("Value: %s\n", node->Node_Decimal.value);
     }
+    else if (node->kind == NODE_IDENTIFIER) {
+        printf(", Id: %s\n", node->Node_Identifier.value);
+    }
     else if (node->kind == NODE_UNARY) {
         printf(", Operator '%s'\n", node->Node_Unary.operator);
         print_indent(indent_level + 1);
@@ -58,14 +61,12 @@ void print_ast_node(Node* node, int indent_level) {
         print_node_list(node->Node_Binary.expressions, indent_level + 1);
     }
     else if (node->kind == NODE_DECLARATION) {
-        printf("\n");
-        print_indent(indent_level + 1);
-        printf("Identifier: %s\n", node->Node_Declaration.identifier->Node_Identifier.value);
+        printf(", Id: %s, ", node->Node_Declaration.identifier->Node_Identifier.value);
         if (node->Node_Declaration.is_new) {
-            print_indent(indent_level + 1);
-            printf("IS_NEW\n");
+            printf("IS_NEW, ");
         }
         if (node->Node_Declaration.is_assignment) {
+            printf("\n");
             print_indent(indent_level + 1);
             printf("Expression:\n");
             print_ast_node(node->Node_Declaration.expr, indent_level + 1);

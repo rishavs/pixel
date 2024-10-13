@@ -123,9 +123,11 @@ char* generate_expression(Codegen_context* ctx, Node* expr) {
 
 // TODO - types!!!
 char* generate_declaration(Codegen_context* ctx, Node* decl_stmt) {
+    char* is_var = decl_stmt->Node_Declaration.is_var ? "" : "const ";
+    char* declared_type = decl_stmt->Node_Declaration.is_new ? "int " : "";
     char* identifier = generate_identifier(ctx, decl_stmt->Node_Declaration.identifier);
-    char* expr = generate_expression(ctx, decl_stmt->Node_Declaration.expr);
-    return join_strings(6, generate_indent(ctx), "let ", identifier, " = ", expr, ";");
+    char* expr = decl_stmt->Node_Declaration.is_assignment ? generate_expression(ctx, decl_stmt->Node_Declaration.expr) : "0";
+    return join_strings(7, generate_indent(ctx), declared_type, is_var, identifier, " = ", expr, ";");
 }
 
 char* generate_return_statement(Codegen_context* ctx, Node* ret_stmt) {
@@ -136,6 +138,7 @@ char* generate_return_statement(Codegen_context* ctx, Node* ret_stmt) {
 char* generate_statement(Codegen_context* ctx, Node* stmt) {
     switch (stmt->kind) {
         case NODE_DECLARATION:
+            printf("Generating declaration, %s\n", stmt->Node_Declaration.identifier->Node_Identifier.value);
             return generate_declaration(ctx, stmt);
         case NODE_RETURN:
             return generate_return_statement(ctx, stmt);

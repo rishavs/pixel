@@ -1,7 +1,9 @@
 let x = 3
 
 
-let var y = x + 1
+let x 
+
+y = x + 1
 
 y = y + 1
 
