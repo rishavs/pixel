@@ -5,39 +5,36 @@
 #include "errors.h"
 #include "transpiler.h"
 
-TRANSPILER_CONTEXT* create_transpiler_context(const char* filepath, const char* src) {
+TRANSPILER_CONTEXT* create_transpiler_context(const char* filepath) {
     TRANSPILER_CONTEXT* ctx = (TRANSPILER_CONTEXT*)malloc(sizeof(TRANSPILER_CONTEXT));
-    if (ctx == NULL) {
-        fatal_memory_allocation_failure(__FILE__, __LINE__);
-    }
+    if (ctx == NULL) fatal_memory_allocation_failure(__FILE__, __LINE__);
 
     ctx->filepath = strdup(filepath);
-    ctx->src = strdup(src);
+    ctx->src = "";
 
     // Initialize error handling
     ctx->errors_count = 0;
     ctx->errors_capacity = 8; // Initial capacity for errors
-    ctx->errors = (TRANSPILER_ERROR*)malloc(ctx->errors_capacity * sizeof(TRANSPILER_ERROR));
-    if (ctx->errors == NULL) {
-        fatal_memory_allocation_failure(__FILE__, __LINE__);
-    }
+    ctx->errors = calloc(ctx->errors_capacity, sizeof(TRANSPILER_ERROR));
+    if (ctx->errors == NULL) fatal_memory_allocation_failure(__FILE__, __LINE__);
 
     // Initialize cursor
     ctx->i = 0;
-    ctx->line = 0;
 
     // Initialize lexer
     ctx->tokens_count = 0;
     ctx->tokens_capacity = 8; // Initial capacity for tokens
-    ctx->tokens = (TOKEN*)malloc(ctx->tokens_capacity * sizeof(TOKEN));
-    if (ctx->tokens == NULL) {
-        fatal_memory_allocation_failure(__FILE__, __LINE__);
-    }
+    ctx->tokens = calloc(ctx->tokens_capacity, sizeof(TOKEN));
+    if (ctx->tokens == NULL) fatal_memory_allocation_failure(__FILE__, __LINE__);
     ctx->lexing_duration = 0.0;
 
-    // Initialize code generation
-    ctx->cFileCode = NULL;
-    ctx->hFileCode = NULL;
+    // add default c code
+    ctx->cFileCode = "\
+int main() {\
+    return 0;\
+}\
+";
+    ctx->hFileCode = "";
 
     return ctx;
 }

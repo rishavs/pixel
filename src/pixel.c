@@ -18,11 +18,11 @@ int main(int argc, char* argv[]) {
         printf("Compiling project with entrypoint file: %s\n", argv[2]);
         char* filepath = argv[2];
 
-        // validate_file(filepath);
-
-        // transpile_file(filepath);
-
-        // build_cfiles(filepath);
+        // TRANSPILER_CONTEXT* ctx = create_transpiler_context(filepath);
+        // validate_file(ctx);
+        // read_file(ctx);
+        // transpile_file(ctx);
+        // build_cfiles(ctx);
         
         return 0;
     }

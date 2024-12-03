@@ -65,16 +65,18 @@ typedef struct Token {
 
 typedef struct {
     char* filepath;
-    char* src;
+
+    // cursor
+    size_t i;
 
     // Error handling
     size_t errors_count;
     size_t errors_capacity;
     TRANSPILER_ERROR* errors;
 
-    // cursor
-    size_t i;
-    size_t line;
+    // Reading source
+    char* src;
+    size_t src_len;
 
     // Lexer
     size_t tokens_count;
@@ -109,9 +111,11 @@ typedef struct {
 
 } TRANSPILER_CONTEXT;
 
-TRANSPILER_CONTEXT* create_transpiler_context(const char* filepath, const char* src);
+TRANSPILER_CONTEXT* create_transpiler_context(const char* filepath);
 void add_token_to_context(TRANSPILER_CONTEXT* ctx, TOKENKIND kind, char* value, size_t pos, size_t line);
 void add_error_to_context(TRANSPILER_CONTEXT* ctx, char* category, char* header, char* msg, char* filepath, size_t pos, size_t line, char* transpiler_file, size_t transpiler_line);
 void transpile_file(TRANSPILER_CONTEXT* ctx);
+
+void lex_file(TRANSPILER_CONTEXT* ctx);
 
 #endif
