@@ -20,7 +20,7 @@ Suite all_tests = {
     "Test Suite",
     (Test[]) {
         {"Null input", false, test_01},
-        {"Null input with comments", false, test_02},
+        {"Only comments and spaces", false, test_02},
         {"Simple integer", true, test_03},
 
 

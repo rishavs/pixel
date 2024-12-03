@@ -29,11 +29,7 @@ TRANSPILER_CONTEXT* create_transpiler_context(const char* filepath) {
     ctx->lexing_duration = 0.0;
 
     // add default c code
-    ctx->cFileCode = "\
-int main() {\
-    return 0;\
-}\
-";
+    ctx->cFileCode = DEFAULT_CFILE_CODE;
     ctx->hFileCode = "";
 
     return ctx;
@@ -59,7 +55,7 @@ void add_error_to_context(TRANSPILER_CONTEXT* ctx, char* category, char* header,
     ctx->errors_count++;
 }
 
-void add_token_to_context(TRANSPILER_CONTEXT* ctx, TOKENKIND kind, char* value, size_t pos, size_t line) {
+void add_token_to_context(TRANSPILER_CONTEXT* ctx, TOKEN_KIND kind, char* value, size_t pos, size_t line) {
     if (ctx->tokens_count == ctx->tokens_capacity) {
         ctx->tokens_capacity *= 2;
         ctx->tokens = (TOKEN*)realloc(ctx->tokens, ctx->tokens_capacity * sizeof(TOKEN));

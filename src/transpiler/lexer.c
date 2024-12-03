@@ -10,7 +10,6 @@
 void lex_file(TRANSPILER_CONTEXT* ctx) {
 
     // Initialize the iterator
-    ctx->src_len = strlen(ctx->src);
     char c = ctx->src[0];
 
     // Loop through the source code
@@ -121,7 +120,7 @@ void lex_file(TRANSPILER_CONTEXT* ctx) {
 
         // Handle numbers
         } else if (c >= '0' && c <= '9') {
-            TOKENKIND number_kind = TOKEN_INTEGER;
+            TOKEN_KIND number_kind = TOKEN_INTEGER;
             size_t anchor = pos;
 
             while (pos < ctx->src_len && c != '\0') {
@@ -166,4 +165,5 @@ void lex_file(TRANSPILER_CONTEXT* ctx) {
             pos++;
         }
     }
+    ctx->src_len = pos;
 }

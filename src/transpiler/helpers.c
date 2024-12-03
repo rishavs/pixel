@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 
 bool string_starts_with(char *src, size_t src_len, size_t i,  char* frag) {
     size_t frag_len = strlen(frag);

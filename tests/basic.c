@@ -6,29 +6,35 @@
 
 // Null input
 bool test_01() {
-    char* input = "";
-    // char* output = transpile_file("test.c", input);
-    char* output = "";
-    return (strcmp(input, output) == 0);
+    char* src = "";
+    TRANSPILER_CONTEXT* ctx = create_transpiler_context("");
+    ctx->src = src;
+    transpile_file(ctx);
+    char* output = DEFAULT_CFILE_CODE;
+    return (strcmp(ctx->cFileCode, output) == 0);
 }
 
 // Null input with comments
 bool test_02() {
-    char* input = "/* This is a comment */";
-    TRANSPILER_CONTEXT* ctx = create_transpiler_context("test.c");
+    char* input = " \
+    -- This is a single line comment \
+    -[ This is a multi \
+    \
+    line comment \
+]- ";
+    TRANSPILER_CONTEXT* ctx = create_transpiler_context("");
     ctx->src = input;
     transpile_file(ctx);
-    printf("Errors count: %zu\n", ctx->errors_count);
-    printf(ctx->errors[0].msg);
-    printf(ctx->cFileCode);
-    char* output = "";
-    return (strcmp(input, output) == 0);
+    char* output = DEFAULT_CFILE_CODE;
+    return (strcmp(ctx->cFileCode, output) == 0);
 }
 
 // Integer
 bool test_03() {
     char* input = "13";
-    // char* output = transpile_file("test.c", input);
-    char* output = "13";
-    return (strcmp(input, output) == 0);
+    TRANSPILER_CONTEXT* ctx = create_transpiler_context("");
+    ctx->src = input;
+    transpile_file(ctx);
+    char* output = DEFAULT_CFILE_CODE;
+    return (strcmp(ctx->cFileCode, output) == 0);
 }
