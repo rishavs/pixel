@@ -2,10 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include <assert.h>
 
 #include "pixel.h"
-#include "compiler.h"
 
 int main(int argc, char* argv[]) {
     if (argc == 1) {
@@ -19,7 +17,12 @@ int main(int argc, char* argv[]) {
     } else if (argc == 3 && strcmp(argv[1], "run") == 0) {
         printf("Compiling project with entrypoint file: %s\n", argv[2]);
         char* filepath = argv[2];
-        compile_file(filepath);
+
+        // validate_file(filepath);
+
+        // transpile_file(filepath);
+
+        // build_cfiles(filepath);
         
         return 0;
     }

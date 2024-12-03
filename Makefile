@@ -1,5 +1,5 @@
 # Variables
-COMPILER = gcc
+COMPILER = tcc
 HEADERS_FOLDER = include
 OUTPUT_EXECUTABLE = bin/pixel
 TEST_EXECUTABLE = bin/test
@@ -8,16 +8,21 @@ TEST_FILE = test.c
 COMPILER_FLAGS = -fno-omit-frame-pointer #-fsanitize=address
 COMPILER_WARNINGS = -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter
 INCLUDES = -I$(HEADERS_FOLDER)
+# SOURCE_FILES = \
+# 	src/compiler/errors.c \
+# 	src/compiler/helpers.c \
+# 	src/core/list.c \
+# 	src/core/bag.c \
+# 	src/compiler/compiler.c \
+# 	src/compiler/reader.c \
+# 	src/compiler/lexer.c \
+# 	src/compiler/parser.c \
+# 	src/compiler/codegen.c
+
 SOURCE_FILES = \
-	src/compiler/errors.c \
-	src/compiler/helpers.c \
-	src/core/list.c \
-	src/core/bag.c \
-	src/compiler/compiler.c \
-	src/compiler/reader.c \
-	src/compiler/lexer.c \
-	src/compiler/parser.c \
-	src/compiler/codegen.c
+	src/transpiler/transpiler.c \
+	src/transpiler/context.c \
+	src/transpiler/errors.c \
 
 # Default target
 all: build
@@ -32,7 +37,7 @@ run: build
 
 # Test target
 test: 
-	$(COMPILER) $(COMPILER_FLAGS) $(TEST_FILE) src/*.c -o .\bin\test.exe
+	$(COMPILER) $(COMPILER_WARNINGS) $(COMPILER_FLAGS) $(INCLUDES) .\tests\runner.c .\tests\basic.c $(SOURCE_FILES) -o ./bin/test.exe
 	./bin/test.exe
 
 # Clean target
