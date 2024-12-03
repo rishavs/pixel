@@ -28,6 +28,11 @@ TRANSPILER_CONTEXT* create_transpiler_context(const char* filepath) {
     if (ctx->tokens == NULL) fatal_memory_allocation_failure(__FILE__, __LINE__);
     ctx->lexing_duration = 0.0;
 
+    // Initialize parser
+    ctx->nodes_count = 0;
+    ctx->nodes_capacity = 8; // Initial capacity for nodes
+    ctx->ass = calloc(ctx->nodes_capacity, sizeof(Node));
+
     // add default c code
     ctx->cFileCode = DEFAULT_CFILE_CODE;
     ctx->hFileCode = "";

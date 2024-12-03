@@ -143,25 +143,19 @@ struct TRANSPILER_CONTEXT {
     size_t src_len;
 
     // Lexer
+    TOKEN* tokens;
     size_t tokens_count;
     size_t tokens_capacity;
-    TOKEN* tokens;
     double lexing_duration;
 
     char* cFileCode;
     char* hFileCode;
 
-    
-    // // Lexer
-    // li: number = 0;
-    // line: number = 0;
-    // tokens: Token[] = [];
-    // lexingDuration: number = 0;
-
-    // // Parser
-    // pi: number = 0;
-    // root: RootNode = new RootNode(0, 0);
-    // parsingDuration: number = 0;
+    // Parser
+    Node* ass;
+    size_t nodes_count;
+    size_t nodes_capacity;
+    double parsing_duration;
 
     // // Codegen
     // cFileCode   : string = "";
