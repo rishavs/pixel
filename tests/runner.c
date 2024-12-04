@@ -31,7 +31,7 @@ int main() {
             }
 
         }
-        printf("    %zu) %s\n", i, test.name);
+        printf("    %zu) %s\n", i+1, test.name);
         i++;
     }
 

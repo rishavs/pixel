@@ -80,6 +80,7 @@ void lex_file(TRANSPILER_CONTEXT* ctx);
 
 // Define the macro for the enum and string array
 #define BUILD_NODE_KIND \
+    X(NODE_ILLEGAL)     \
     X(NODE_INTEGER)     \
     X(NODE_DECIMAL)     \
     X(NODE_IDENTIFIER)  \
@@ -104,18 +105,25 @@ static const char* list_of_node_kinds[] = {
 };
 
 // Node structure
+typedef struct Nodes_List {
+    Node* nodes; 
+    size_t count; 
+    size_t capacity;
+} Nodes_List;
+
 struct Node {
     NODE_KIND    kind;
     size_t      pos;
     size_t      line;
 
-    size_t      depth;              // distance from root in terms of scopes
-    size_t      distance;           // distance from root in terms of nodes - parent linkages
+    size_t      scope_depth;              // distance from root in terms of scopes
+    size_t      root_distance;           // distance from root in terms of nodes - parent linkages
 
-    size_t      parent_index;         // index of the parent node
-    size_t      scope_owner_index;      // index of the scope owner node
+    Node*      parent;         // index of the parent node
+    Node*      scope_owner;      // index of the scope owner node
     
     union {
+        struct { char* msg; } Node_Ilegal;
         struct { char* value; } Node_Integer;
         struct { char* value; } Node_Decimal;
         struct { char* value; } Node_Identifier;
@@ -123,9 +131,11 @@ struct Node {
         // struct { char* operator; size_t expressions[] } Node_Binary; // can a qualified chain just be binary?
         // struct { bool is_var; bool is_new; bool is_assignment; Node* identifier; struct Node* expr; } Node_Declaration;
         // struct { struct Node *expr; } Node_Return;
-        struct { char* filepath; size_t* block; } Node_Program;
+        struct { Nodes_List statements; } Node_Program;
     };
 };
+
+void parse_file(TRANSPILER_CONTEXT* ctx);
 
 struct TRANSPILER_CONTEXT {
     char* filepath;
@@ -152,9 +162,7 @@ struct TRANSPILER_CONTEXT {
     char* hFileCode;
 
     // Parser
-    Node* ass;
-    size_t nodes_count;
-    size_t nodes_capacity;
+    Node* root;
     double parsing_duration;
 
     // // Codegen

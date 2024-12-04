@@ -29,9 +29,8 @@ TRANSPILER_CONTEXT* create_transpiler_context(const char* filepath) {
     ctx->lexing_duration = 0.0;
 
     // Initialize parser
-    ctx->nodes_count = 0;
-    ctx->nodes_capacity = 8; // Initial capacity for nodes
-    ctx->ass = calloc(ctx->nodes_capacity, sizeof(Node));
+    ctx->root = NULL;
+    ctx->parsing_duration = 0.0;
 
     // add default c code
     ctx->cFileCode = DEFAULT_CFILE_CODE;
@@ -75,4 +74,17 @@ void add_token_to_context(TRANSPILER_CONTEXT* ctx, TOKEN_KIND kind, char* value,
     ctx->tokens[ctx->tokens_count].line = line;
     ctx->tokens_count++;
 
+}
+
+void add_to_nodes_list(Nodes_List* list, Node* node) {
+    if (list->count == list->capacity) {
+        list->capacity *= 2;
+        list->nodes = (Node*)realloc(list->nodes, list->capacity * sizeof(Node));
+        if (list->nodes == NULL) {
+            fatal_memory_allocation_failure(__FILE__, __LINE__);
+        }
+    }
+
+    list->nodes[list->count] = *node; // Dereference the node pointer to assign the Node object
+    list->count++;
 }

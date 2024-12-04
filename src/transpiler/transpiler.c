@@ -20,6 +20,14 @@ void transpile_file(TRANSPILER_CONTEXT* ctx) {
         printf("%s: %s: %s\n", e.category, e.header, e.msg);
     }
 
+    // parse_file(ctx);
+
+    // // check if the parser initialized correctly
+    // if (!ctx->root) {
+    //     perror("Failed to parse the file");
+    //     return;
+    // }
+
     // add dummy return value
     ctx->cFileCode = "\
 int main() {\

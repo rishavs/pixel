@@ -15,13 +15,17 @@ typedef struct {
 bool test_01();
 bool test_02();
 bool test_03();
+// bool test_04();
+// bool test_05();
+// bool test_06();
+// bool test_07();
 
 Suite all_tests = {
     "Test Suite",
     (Test[]) {
         {"Null input", false, test_01},
         {"Only comments and spaces", false, test_02},
-        {"Simple integer", true, test_03},
+        {"Basic variable declaration for an integer", false, test_03},
 
 
         {NULL, false, NULL} // NULL entry to terminate the array
