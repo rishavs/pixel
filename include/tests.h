@@ -1,6 +1,9 @@
 #ifndef PIXEL_TESTS_H
 #define PIXEL_TESTS_H
 
+#include <stdbool.h>
+
+
 typedef struct {
     const char *name;
     bool is_todo;
@@ -32,6 +35,19 @@ Suite all_tests = {
     }
 };
 
+bool test_array_01();
+bool test_array_02();
+bool test_array_03();
+
+Suite array_tests = {
+    "Array Test Suite",
+    (Test[]) {
+        {"Basic array test", false, test_array_01},
+        {"Array test with pop", false, test_array_02},
+        {"Array test with struct", false, test_array_03},
+        {NULL, false, NULL} // NULL entry to terminate the array
+    }
+};
 
 
 #endif

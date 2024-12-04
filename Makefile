@@ -39,7 +39,7 @@ run: build
 
 # Test target
 test: 
-	$(COMPILER) $(COMPILER_WARNINGS) $(COMPILER_FLAGS) $(INCLUDES) .\tests\runner.c .\tests\basic.c $(SOURCE_FILES) -o ./bin/test.exe
+	$(COMPILER) $(COMPILER_WARNINGS) $(COMPILER_FLAGS) $(INCLUDES) .\tests\runner.c .\tests\basic.c .\tests\collections.c $(SOURCE_FILES) -o ./bin/test.exe
 	./bin/test.exe
 
 # Clean target

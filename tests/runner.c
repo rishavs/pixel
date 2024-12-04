@@ -7,7 +7,8 @@
 #include "../include/tests.h"
 
 int main() {
-    printf("Testing Suite: %s\n", all_tests.name);
+    Suite current = array_tests;
+    printf("Testing Suite: %s\n", current.name);
 
     size_t total_tests = 0;
     size_t total_passed = 0;
@@ -15,9 +16,9 @@ int main() {
     size_t total_skipped = 0;
 
     size_t i = 0;
-    while (all_tests.tests[i].name != NULL) {
+    while (current.tests[i].name != NULL) {
         total_tests++;
-        Test test = all_tests.tests[i];
+        Test test = current.tests[i];
         if (test.is_todo) {
             total_skipped++;
             printf("\033[0;34m  [ TODO ]\033[0m"); // Blue for TODO
