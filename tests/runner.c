@@ -10,8 +10,9 @@
 
 // import tests
 // #include "arrays.c"
-#include "list.c"
-#include "basic.c"
+#include "list.tests.c"
+#include "dict.tests.c"
+#include "basic.tests.c"
 
 // Create an array of the tests
 Test_Fun tests[] = {
@@ -36,7 +37,13 @@ Test_Fun tests[] = {
     list_test_04,
     list_test_05,
 
-    
+    // Dict tests
+    dict_of_int_can_set_get_remove,
+    dict_of_string_can_set_get_remove,
+    dict_of_structs_can_get_set_remove,
+    dict_of_struct_refs_can_get_set_remove,
+
+
     // End of tests
     NULL
 };
@@ -47,10 +54,10 @@ int main() {
     while (tests[i] != NULL) {
         Test_Result res = tests[i]();
         if (res.passed) {
-            printf("\033[0;32m  [ PASSED ] %zu: %s\n\033[0m", i, res.desc); // Green color for PASS
+            printf("\033[0;32m%zu: \t[ PASSED ]\t%s\n\033[0m", i, res.desc); // Green color for PASS
             passed_count++;
         } else {
-            printf("\033[0;31m  [ FAILED ] %zu: %s\n\033[0m", i, res.desc);
+            printf("\033[0;31m%zu:\t[ FAILED ]\t%s\n\033[0m", i, res.desc);
         }
         i++;
     }

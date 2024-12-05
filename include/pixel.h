@@ -55,7 +55,7 @@ typedef struct Entry {
 typedef struct {
     Entry **buckets;       // Array of bucket pointers
     size_t capacity;       // Current bucket array size
-    size_t length;         // Number of entries in the dictionary
+    size_t count;         // Number of entries in the dictionary
     size_t value_size;     // Size of the value being stored
     Entry *head;           // Head of the insertion-ordered list
     Entry *tail;           // Tail of the insertion-ordered list

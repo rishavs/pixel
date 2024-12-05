@@ -61,6 +61,8 @@ int list_pop(List *list, void *out_item) {
 int list_get(const List *list, size_t index, void *out_item) {
     if (index >= list->length) {
         fprintf(stderr, "Index out of bounds\n");
+        // set the value of out_item to NULL
+        memset(out_item, 0, list->item_size);
         return 0;
     }
     if (out_item) {

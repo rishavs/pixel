@@ -24,7 +24,7 @@ Dict dict_init(size_t value_size) {
         exit(EXIT_FAILURE);
     }
     dict.capacity = DICT_INITIAL_CAPACITY;
-    dict.length = 0;
+    dict.count = 0;
     dict.value_size = value_size;
     dict.head = NULL;
     dict.tail = NULL;
@@ -76,7 +76,7 @@ static void dict_resize(Dict *dict) {
 
 // Add or update a key-value pair
 void dict_set(Dict *dict, const char *key, const void *value) {
-    if ((float)dict->length / dict->capacity >= DICT_LOAD_FACTOR) {
+    if ((float)dict->count / dict->capacity >= DICT_LOAD_FACTOR) {
         dict_resize(dict);
     }
 
@@ -124,7 +124,7 @@ void dict_set(Dict *dict, const char *key, const void *value) {
     dict->tail = new_entry;
 
     dict->buckets[index] = new_entry;
-    dict->length++;
+    dict->count++;
 }
 
 // Retrieve a value by key
@@ -139,6 +139,9 @@ int dict_get(Dict *dict, const char *key, void *out_value) {
         }
         entry = entry->next;
     }
+    // set the value of out_value to NULL
+    memset(out_value, 0, dict->value_size);
+
     return 0; // Not found
 }
 
@@ -167,7 +170,7 @@ int dict_remove(Dict *dict, const char *key) {
             free(entry->key);
             free(entry->value);
             free(entry);
-            dict->length--;
+            dict->count--;
             return 1; // Removed
         }
         prev = entry;
