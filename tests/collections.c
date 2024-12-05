@@ -1,9 +1,13 @@
+#include <stdio.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "errors.h"
+#include "tests.h"
 #include "array.h"
 #include "hashmap.h"
+
 
 // Define an array of integers
 DEFINE_ARRAY(int, ints)
@@ -11,17 +15,20 @@ DEFINE_ARRAY(int, ints)
 // Define an array of strings
 DEFINE_ARRAY(char*, strings)
 
-// define a example struct
+// Define an array of points
 typedef struct {
     int x;
     int y;
 } Point;
-
-// Define an array of points
 DEFINE_ARRAY(Point, points)
 
-// test a simple int array
-bool test_array_01() {
+// Test a simple int array
+Test_Result test_array_01() {
+    Test_Result res = { 
+        .desc = "An int array can push and pop items",
+        .passed = false 
+    };
+
     ints_array_t my_array;
 
     // Initialize with an initial capacity of 4
@@ -36,7 +43,7 @@ bool test_array_01() {
     ints_array_push(&my_array, 60);
     ints_array_push(&my_array, 70);
 
-    return my_array.size == 7 &&
+    res.passed = my_array.count == 7 &&
         my_array.capacity == 8 &&
         my_array.data[0] == 10 &&
         my_array.data[1] == 20 &&
@@ -45,10 +52,16 @@ bool test_array_01() {
         my_array.data[4] == 50 &&
         my_array.data[5] == 60 &&
         my_array.data[6] == 70;
+
+    return res;
 }
 
-// test a simple string array
-bool test_array_02() {
+// Test a simple string array
+Test_Result test_array_02() {
+    Test_Result res = { 
+        .desc = "A string array can push and pop items",
+        .passed = false 
+    };
     strings_array_t my_array;
 
     // Initialize with an initial capacity of 2
@@ -65,16 +78,22 @@ bool test_array_02() {
     strings_array_pop(&my_array);
     strings_array_pop(&my_array);
 
-    return my_array.size == 4 &&
+    res.passed = my_array.count == 4 &&
         my_array.capacity == 8 &&
         strcmp(my_array.data[0], "Hello") == 0 &&
         strcmp(my_array.data[1], "World") == 0 &&
         strcmp(my_array.data[2], "Pixel") == 0 &&
         strcmp(my_array.data[3], "Language") == 0;
+
+    return res;
 }
 
-// test a simple struct array
-bool test_array_03() {
+// Test a simple struct array
+Test_Result test_array_03() {
+    Test_Result res = { 
+        .desc = "A struct array can push and pop items",
+        .passed = false 
+    };
     points_array_t my_array;
 
     // Initialize with an initial capacity of 2
@@ -91,53 +110,16 @@ bool test_array_03() {
     points_array_push(&my_array, p3);
     points_array_push(&my_array, p4);
 
-    return my_array.size == 4 &&
+    points_array_pop(&my_array);
+
+    res.passed = my_array.count == 3 &&
         my_array.capacity == 4 &&
         my_array.data[0].x == 10 &&
         my_array.data[0].y == 20 &&
         my_array.data[1].x == 30 &&
         my_array.data[1].y == 40 &&
         my_array.data[2].x == 50 &&
-        my_array.data[2].y == 60 &&
-        my_array.data[3].x == 70 &&
-        my_array.data[3].y == 80;
+        my_array.data[2].y == 60;
+
+    return res;
 }
-// // Null input
-// bool test_01() {
-//     char* src = "";
-//     TRANSPILER_CONTEXT* ctx = create_transpiler_context("");
-//     ctx->src = src;
-//     transpile_file(ctx);
-//     char* output = DEFAULT_CFILE_CODE;
-//     return (strcmp(ctx->cFileCode, output) == 0);
-// }
-
-// // Null input with comments
-// bool test_02() {
-//     char* input = " \
-//     -- This is a single line comment \
-//     -[ This is a multi \
-//     \
-//     line comment \
-// ]- ";
-//     TRANSPILER_CONTEXT* ctx = create_transpiler_context("");
-//     ctx->src = input;
-//     transpile_file(ctx);
-//     char* output = DEFAULT_CFILE_CODE;
-//     return (strcmp(ctx->cFileCode, output) == 0);
-// }
-
-// // variable declaration for Integer
-// bool test_03() {
-//     char* input = "var x = 10";
-//     TRANSPILER_CONTEXT* ctx = create_transpiler_context("");
-//     ctx->src = input;
-//     transpile_file(ctx);
-//     char* output = "#include <stdint.h>\
-// \
-// int main() {\
-//     int64_t x = 10;\
-//     return 0;\
-// }";
-//     return (strcmp(ctx->cFileCode, output) == 0);
-// }

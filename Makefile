@@ -4,7 +4,7 @@ HEADERS_FOLDER = include
 OUTPUT_EXECUTABLE = bin/pixel
 TEST_EXECUTABLE = bin/test
 MAIN_FILE = src/pixel.c
-TEST_FILE = test.c
+TEST_FILE = tests/runner.c
 COMPILER_FLAGS = -fno-omit-frame-pointer #-fsanitize=address
 COMPILER_WARNINGS = -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter
 INCLUDES = -I$(HEADERS_FOLDER)
@@ -39,7 +39,7 @@ run: build
 
 # Test target
 test: 
-	$(COMPILER) $(COMPILER_WARNINGS) $(COMPILER_FLAGS) $(INCLUDES) .\tests\runner.c .\tests\basic.c .\tests\collections.c $(SOURCE_FILES) -o ./bin/test.exe
+	$(COMPILER) $(COMPILER_WARNINGS) $(COMPILER_FLAGS) $(INCLUDES) $(TEST_FILE) $(SOURCE_FILES) -o ./bin/test.exe
 	./bin/test.exe
 
 # Clean target
