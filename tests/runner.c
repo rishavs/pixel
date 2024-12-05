@@ -34,6 +34,7 @@ Test_Fun tests[] = {
     list_test_02,
     list_test_03,
     list_test_04,
+    list_test_05,
 
     
     // End of tests

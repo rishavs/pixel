@@ -3,10 +3,30 @@
 
 #define PIXEL_VERSION "0.0.1"
 
-typedef enum {
-    Int,
-    List_of_Ints,
+typedef enum Pixel_Primitive_Type {
+    NIL,
+    INT64,
+    FLOAT64,
+    STRING,
+    CHAR,
+    BYTE,
+    BOOL,
+    IO,
 };
+
+typedef enum Pixel_Collection_Type { // needs an input type for completion
+    ARRAY,
+    LIST,
+    DICT,
+};
+
+typedef enum Pixel_Complex_Type {
+    FUNCTION,                       // needs a return type for completion
+    OBJ,
+    ENUM,
+};
+
+// isRef = false; is how we will track if a vlue is a reference
 
 // List Implementation
 #define LIST_DEFAULT_CAPACITY 8

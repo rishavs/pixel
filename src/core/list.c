@@ -2,16 +2,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "errors.h"
 #include "pixel.h"
 
 // Initialize the list
 List list_init(size_t item_size) {
     List list;
     list.items = malloc(LIST_DEFAULT_CAPACITY * item_size);
-    if (!list.items) {
-        perror("Memory allocation failed on list_init");
-        exit(EXIT_FAILURE);
-    }
+    if (!list.items) fatal_memory_allocation_failure(__FILE__, __LINE__);
     list.item_size = item_size;
     list.capacity = LIST_DEFAULT_CAPACITY;
     list.length = 0;
@@ -31,10 +29,7 @@ void list_free(List *list) {
 static void list_resize(List *list) {
     size_t new_capacity = list->capacity * 2;
     void *new_items = realloc(list->items, new_capacity * list->item_size);
-    if (!new_items) {
-        perror("Memory allocation failed on list_resize");
-        exit(EXIT_FAILURE);
-    }
+    if (!new_items) fatal_memory_allocation_failure(__FILE__, __LINE__);
     list->items = new_items;
     list->capacity = new_capacity;
 }
