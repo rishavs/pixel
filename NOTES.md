@@ -3,6 +3,9 @@ PAUSE - starting on parser. have defined ASS. Now need to add the parse_file fun
 
 TODO 
     [ ] skip transpiling if null input
+    [] work out a way of namepsacing the types like int
+    [] add print functions for int, and then for all primitive types
+    [] add dev mode. guard "____" at start of identifier as protected
 
 
 NOTES

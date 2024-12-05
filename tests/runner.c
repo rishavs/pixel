@@ -6,9 +6,11 @@
 
 #include "errors.h"
 #include "tests.h"
+#include "pixel.h"
 
 // import tests
-#include "collections.c"
+// #include "arrays.c"
+#include "list.c"
 #include "basic.c"
 
 // Create an array of the tests
@@ -18,10 +20,23 @@ Test_Fun tests[] = {
     test_02,
     test_03,
     
-    // Collections tests
-    test_array_01,
-    test_array_02,
-    test_array_03,
+    // Array tests
+    // test_array_01,
+    // test_array_02,
+    // test_array_03,
+
+    // // Hashmap tests
+    // test_hashmap_01,
+    // test_hashmap_02,
+
+    // List tests
+    list_test_01,
+    list_test_02,
+    list_test_03,
+    list_test_04,
+
+    
+    // End of tests
     NULL
 };
 
@@ -31,10 +46,10 @@ int main() {
     while (tests[i] != NULL) {
         Test_Result res = tests[i]();
         if (res.passed) {
-            printf("\033[0;32m  [ PASSED ] %s\n\033[0m", res.desc); // Green color for PASS
+            printf("\033[0;32m  [ PASSED ] %zu: %s\n\033[0m", i, res.desc); // Green color for PASS
             passed_count++;
         } else {
-            printf("\033[0;31m  [ FAILED ] %s\n\033[0m", res.desc);
+            printf("\033[0;31m  [ FAILED ] %zu: %s\n\033[0m", i, res.desc);
         }
         i++;
     }

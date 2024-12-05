@@ -8,11 +8,11 @@ void transpile_file(TRANSPILER_CONTEXT* ctx) {
 
     lex_file(ctx);
 
-    // print tokens
-    for (size_t i = 0; i < ctx->tokens_count; i++) {
-        TOKEN t = ctx->tokens[i];
-        printf("%s: %s\n", list_of_token_kinds[t.kind], t.value);
-    }
+    // // print tokens
+    // for (size_t i = 0; i < ctx->tokens_count; i++) {
+    //     TOKEN t = ctx->tokens[i];
+    //     printf("%s: %s\n", list_of_token_kinds[t.kind], t.value);
+    // }
 
     // print errors
     for (size_t i = 0; i < ctx->errors_count; i++) {

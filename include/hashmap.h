@@ -29,13 +29,13 @@ static inline uint64_t fnv1a_hash(const char *key) {
                                                                     \
     typedef struct {                                                \
         name##_pair_t *data;                                        \
-        size_t size;                                                \
+        size_t count;                                                \
         size_t capacity;                                            \
     } name##_hashmap_t;                                             \
                                                                     \
     static inline void name##_hashmap_init(name##_hashmap_t *map, size_t initial_capacity) { \
         map->data = NULL;                                           \
-        map->size = 0;                                              \
+        map->count = 0;                                              \
         map->capacity = 0;                                          \
         if (initial_capacity > 0) {                                 \
             map->data = calloc(initial_capacity, sizeof(name##_pair_t)); \
@@ -50,7 +50,7 @@ static inline uint64_t fnv1a_hash(const char *key) {
     static inline void name##_hashmap_free(name##_hashmap_t *map) { \
         free(map->data);                                            \
         map->data = NULL;                                           \
-        map->size = 0;                                              \
+        map->count = 0;                                              \
         map->capacity = 0;                                          \
     }                                                               \
                                                                     \
@@ -77,7 +77,7 @@ static inline uint64_t fnv1a_hash(const char *key) {
     }                                                               \
                                                                     \
     static inline void name##_hashmap_set(name##_hashmap_t *map, const char *key, value_type value) { \
-        if (map->size + 1 > map->capacity / 2) {                    \
+        if (map->count + 1 > map->capacity / 2) {                    \
             name##_hashmap_rehash(map);                             \
         }                                                           \
         uint64_t hash = fnv1a_hash(key);                            \
@@ -92,7 +92,7 @@ static inline uint64_t fnv1a_hash(const char *key) {
         strncpy(map->data[idx].key, key, MAX_KEY_LENGTH);           \
         map->data[idx].key[MAX_KEY_LENGTH - 1] = '\0';              \
         map->data[idx].value = value;                               \
-        map->size++;                                                \
+        map->count++;                                                \
     }                                                               \
                                                                     \
     static inline int name##_hashmap_get(name##_hashmap_t *map, const char *key, value_type *out_value) { \
@@ -116,7 +116,7 @@ static inline uint64_t fnv1a_hash(const char *key) {
         while (map->data[idx].key[0] != '\0') {                     \
             if (strncmp(map->data[idx].key, key, MAX_KEY_LENGTH) == 0) { \
                 map->data[idx].key[0] = '\0';                       \
-                map->size--;                                        \
+                map->count--;                                        \
                 return 1;                                           \
             }                                                       \
             idx = (idx + 1) % map->capacity;                        \
