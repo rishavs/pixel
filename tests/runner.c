@@ -13,6 +13,8 @@
 #include "list.tests.c"
 #include "dict.tests.c"
 #include "basic.tests.c"
+#include "slice.tests.c"
+#include "record.tests.c"
 
 // Create an array of the tests
 Test_Fun tests[] = {
@@ -43,6 +45,17 @@ Test_Fun tests[] = {
     dict_of_structs_can_get_set_remove,
     dict_of_struct_refs_can_get_set_remove,
 
+    // Slice tests
+    slice_of_int_can_push_pop_get_set,
+    slice_of_strings_can_push_pop_get_set,
+    slice_of_points_can_push_pop_get_set,
+    slice_of_refs_to_point_can_push_pop_get_set,
+
+    // Record tests
+    record_of_int_can_set_get_remove,
+    record_of_string_can_set_get_remove,
+    record_of_structs_can_get_set_remove,
+    record_of_struct_refs_can_get_set_remove,
 
     // End of tests
     NULL

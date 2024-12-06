@@ -15,7 +15,6 @@ typedef enum Pixel_Primitive_Type {
 };
 
 typedef enum Pixel_Collection_Type { // needs an input type for completion
-    ARRAY,
     LIST,
     DICT,
 };
@@ -25,6 +24,10 @@ typedef enum Pixel_Complex_Type {
     OBJ,
     ENUM,
 };
+
+// Predefined Objects as Types
+// Error
+// Result - Union of Error & T. with an "ok" member
 
 // isRef = false; is how we will track if a vlue is a reference
 
