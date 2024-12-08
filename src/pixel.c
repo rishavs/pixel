@@ -23,6 +23,9 @@ int main(int argc, char* argv[]) {
         // read_file(ctx);
         // transpile_file(ctx);
         // build_cfiles(ctx);
+        // compile_cfiles(ctx);
+        // present outcomes(ctx);
+        // execute program
         
         return 0;
     }

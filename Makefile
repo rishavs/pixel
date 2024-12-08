@@ -20,12 +20,10 @@ INCLUDES = -I$(HEADERS_FOLDER)
 # 	src/compiler/codegen.c
 
 SOURCE_FILES = \
-	src/core/list.c \
-	src/core/dict.c \
 	src/transpiler/helpers.c \
 	src/transpiler/context.c \
 	src/transpiler/errors.c \
-	src/transpiler/lexer.c \
+	src/transpiler/lexer.c	\
 	src/transpiler/transpiler.c
 
 # Default target

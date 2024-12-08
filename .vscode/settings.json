@@ -3,6 +3,8 @@
     "files.associations": {
         ".fantomasignore": "ignore",
         "transpiler.h": "c",
-        "errno.h": "c"
+        "errno.h": "c",
+        "list.h": "c",
+        "tests.h": "c"
     }
 }

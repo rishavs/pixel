@@ -1,5 +1,5 @@
-#ifndef RECORD_H
-#define RECORD_H
+#ifndef DICT_H
+#define DICT_H
 
 #include <stdlib.h>
 #include <string.h>
@@ -21,7 +21,7 @@ static inline uint64_t fnv1a_hash(const char *key) {
 }
 
 // Macro to define a generic hashmap
-#define DEFINE_RECORD(value_type, name)                            \
+#define DEFINE_DICT(value_type, name)                            \
     typedef struct {                                               \
         char *key;                                                 \
         value_type value;                                          \
@@ -31,16 +31,16 @@ static inline uint64_t fnv1a_hash(const char *key) {
         Entry_of_##name##_t *data;                                 \
         size_t count;                                              \
         size_t capacity;                                           \
-    } Record_of_##name##_t;                                        \
+    } Dict_of_##name##_t;                                        \
                                                                    \
-    static inline void Record_of_##name##_do_init(Record_of_##name##_t *map, size_t initial_capacity) { \
+    static inline void Dict_of_##name##_do_init(Dict_of_##name##_t *map, size_t initial_capacity) { \
         map->count = 0;                                            \
         map->capacity = initial_capacity ? initial_capacity : DICT_INITIAL_CAPACITY; \
         map->data = calloc(map->capacity, sizeof(Entry_of_##name##_t)); \
         if (!map->data) fatal_memory_allocation_failure(__FILE__, __LINE__); \
     }                                                              \
                                                                    \
-    static inline void Record_of_##name##_do_free(Record_of_##name##_t *map) { \
+    static inline void Dict_of_##name##_do_free(Dict_of_##name##_t *map) { \
         for (size_t i = 0; i < map->capacity; i++) {               \
             if (map->data[i].key) {                                \
                 free(map->data[i].key);                            \
@@ -49,7 +49,7 @@ static inline uint64_t fnv1a_hash(const char *key) {
         free(map->data);                                           \
     }                                                              \
                                                                    \
-    static inline void Record_of_##name##_do_rehash(Record_of_##name##_t *map) { \
+    static inline void Dict_of_##name##_do_rehash(Dict_of_##name##_t *map) { \
         size_t new_capacity = map->capacity > 0 ? map->capacity * 2 : DICT_INITIAL_CAPACITY; \
         Entry_of_##name##_t *new_data = calloc(new_capacity, sizeof(Entry_of_##name##_t)); \
         if (!new_data) {                                           \
@@ -72,9 +72,9 @@ static inline uint64_t fnv1a_hash(const char *key) {
         map->capacity = new_capacity;                              \
     }                                                              \
                                                                    \
-    static inline void Record_of_##name##_do_set(Record_of_##name##_t *map, const char *key, value_type value) { \
+    static inline void Dict_of_##name##_do_set(Dict_of_##name##_t *map, const char *key, value_type value) { \
         if (map->count >= map->capacity / 2) {                     \
-            Record_of_##name##_do_rehash(map);                     \
+            Dict_of_##name##_do_rehash(map);                     \
         }                                                          \
         uint64_t hash = fnv1a_hash(key);                           \
         size_t idx = hash % map->capacity;                         \
@@ -91,7 +91,7 @@ static inline uint64_t fnv1a_hash(const char *key) {
         map->count++;                                              \
     }                                                              \
                                                                    \
-    static inline int Record_of_##name##_do_get(Record_of_##name##_t *map, const char *key, value_type *out_value) { \
+    static inline int Dict_of_##name##_do_get(Dict_of_##name##_t *map, const char *key, value_type *out_value) { \
         if (map->capacity == 0) return 0;                          \
         uint64_t hash = fnv1a_hash(key);                           \
         size_t idx = hash % map->capacity;                         \
@@ -105,7 +105,7 @@ static inline uint64_t fnv1a_hash(const char *key) {
         return 0;                                                  \
     }                                                              \
                                                                    \
-    static inline int Record_of_##name##_do_remove(Record_of_##name##_t *map, const char *key) { \
+    static inline int Dict_of_##name##_do_remove(Dict_of_##name##_t *map, const char *key) { \
         if (map->capacity == 0) return 0;                          \
         uint64_t hash = fnv1a_hash(key);                           \
         size_t idx = hash % map->capacity;                         \
@@ -120,4 +120,4 @@ static inline uint64_t fnv1a_hash(const char *key) {
         }                                                          \
         return 0;                                                  \
     }
-#endif // RECORD_H
+#endif // DICT_H

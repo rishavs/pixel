@@ -11,4 +11,7 @@ typedef struct Test_Result {
 // Define the function pointer type
 typedef Test_Result (*Test_Fun)();
 
+Test_Result test_01();
+
+
 #endif

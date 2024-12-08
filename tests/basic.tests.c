@@ -1,7 +1,6 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "errors.h"
 #include "tests.h"
 #include "transpiler.h"
 
@@ -13,11 +12,12 @@ Test_Result test_01() {
     };
     char* src = "";
     char* output = DEFAULT_CFILE_CODE;
-
-    TRANSPILER_CONTEXT* ctx = create_transpiler_context("");
-    ctx->src = src;
-    transpile_file(ctx);
-    res.passed = strcmp(ctx->cFileCode, output) == 0;
+    
+    Transpiler_context_t ctx;
+    create_Transpiler_context_t(&ctx, "");
+    ctx.src = strdup(src);
+    transpile_file(&ctx);
+    res.passed = strcmp(ctx.cFileCode, output) == 0;
 
     return res;
 }
@@ -37,11 +37,12 @@ Test_Result test_02() {
 ]- ";
     char* output = DEFAULT_CFILE_CODE;
 
-    TRANSPILER_CONTEXT* ctx = create_transpiler_context("");
-    ctx->src = src;
-    transpile_file(ctx);
+    Transpiler_context_t ctx;
+    create_Transpiler_context_t(&ctx, "");
+    ctx.src = strdup(src);
+    transpile_file(&ctx);
 
-    res.passed = strcmp(ctx->cFileCode, output) == 0;
+    res.passed = strcmp(ctx.cFileCode, output) == 0;
 
     return res;
 }
@@ -61,11 +62,12 @@ int main() {\
     return 0;\
 }";
 
-    TRANSPILER_CONTEXT* ctx = create_transpiler_context("");
-    ctx->src = src;
-    transpile_file(ctx);
+    Transpiler_context_t ctx;
+    create_Transpiler_context_t(&ctx, "");
+    ctx.src = src;
+    transpile_file(&ctx);
     
-    res.passed = strcmp(ctx->cFileCode, output) == 0;
+    res.passed = strcmp(ctx.cFileCode, output) == 0;
 
     return res;
 }

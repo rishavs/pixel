@@ -7,7 +7,7 @@
 #include "helpers.h"
 #include "transpiler.h"
 
-void lex_file(TRANSPILER_CONTEXT* ctx) {
+void lex_file(Transpiler_context_t* ctx) {
 
     // Initialize the iterator
     char c = ctx->src[0];
@@ -68,15 +68,15 @@ void lex_file(TRANSPILER_CONTEXT* ctx) {
 
         // Handle operators and symbols
         } else if (string_starts_with(ctx->src, ctx->src_len, pos, "=")) {
-            add_token_to_context(ctx, TOKEN_ASSIGN, "=", pos, line);
+            add_token_to_context(ctx, TOKEN_ASSIGN, pos, 1, line);
             pos++;
         
         } else if (string_starts_with(ctx->src, ctx->src_len, pos, "(")) {
-            add_token_to_context(ctx, TOKEN_LPAREN, "(", pos, line);
+            add_token_to_context(ctx, TOKEN_LPAREN, pos, 1, line);
             pos++;
 
         } else if (string_starts_with(ctx->src, ctx->src_len, pos, ")")) {
-            add_token_to_context(ctx, TOKEN_RPAREN, ")", pos, line);
+            add_token_to_context(ctx, TOKEN_RPAREN, pos, 1, line);
             pos++;
 
         // Handle identifiers
@@ -108,19 +108,19 @@ void lex_file(TRANSPILER_CONTEXT* ctx) {
             buffer[pos - anchor] = '\0';
 
             if (strcmp(buffer, "return") == 0) {
-                add_token_to_context(ctx, TOKEN_RETURN, "return", anchor, line);
+                add_token_to_context(ctx, TOKEN_RETURN, anchor, pos - anchor, line);
             } else if (strcmp(buffer, "let") == 0) {
-                add_token_to_context(ctx, TOKEN_LET, "let", anchor, line);
+                add_token_to_context(ctx, TOKEN_LET, anchor, pos - anchor, line);
             } else if (strcmp(buffer, "var") == 0) {
-                add_token_to_context(ctx, TOKEN_VAR, "var", anchor, line);
+                add_token_to_context(ctx, TOKEN_VAR, anchor, pos - anchor, line);
             } else {
-                add_token_to_context(ctx, TOKEN_IDENTIFIER, buffer, anchor, line);
+                add_token_to_context(ctx, TOKEN_IDENTIFIER, anchor, pos - anchor, line);
             }
             // free(buffer);
 
         // Handle numbers
         } else if (c >= '0' && c <= '9') {
-            TOKEN_KIND number_kind = TOKEN_INTEGER;
+            Token_kind number_kind = TOKEN_INTEGER;
             size_t anchor = pos;
 
             while (pos < ctx->src_len && c != '\0') {
@@ -151,7 +151,7 @@ void lex_file(TRANSPILER_CONTEXT* ctx) {
             strncpy(buffer, ctx->src + anchor, pos - anchor);
             buffer[pos - anchor] = '\0';
 
-            add_token_to_context(ctx, number_kind, buffer, anchor, line);
+            add_token_to_context(ctx, number_kind, anchor, pos - anchor, line);
 
 
         // Handle illegal characters

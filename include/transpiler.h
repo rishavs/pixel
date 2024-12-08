@@ -6,17 +6,18 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#include "list.h"
+
 #define DEFAULT_CFILE_CODE "\
 int main() {\
     return 0;\
 }"
 
 // pre-declare the context
-typedef struct TRANSPILER_CONTEXT TRANSPILER_CONTEXT;
-typedef struct Node Node;
+typedef struct Transpiler_context_t Transpiler_context_t;
+typedef struct Node_t Node_t;
 
-
-typedef struct TRANSPILER_ERROR {
+typedef struct Transpiler_error_t {
     char* category;
     char* header;
     char* msg;
@@ -28,7 +29,7 @@ typedef struct TRANSPILER_ERROR {
     char* transpiler_file;
     size_t transpiler_line;
 
-} TRANSPILER_ERROR;
+} Transpiler_error_t;
 
 
 // Define the macro for the enum and string array
@@ -57,7 +58,7 @@ typedef enum {
     #define X(token) token,
     BUILD_TOKEN_KIND
     #undef X
-} TOKEN_KIND;
+} Token_kind;
 
 // Generate the string array using the macro
 static const char* list_of_token_kinds[] = {
@@ -67,93 +68,85 @@ static const char* list_of_token_kinds[] = {
 };
 
 // Token structure
-typedef struct Token {
-    TOKEN_KIND kind;
-    char* value;
+typedef struct Token_t {
+    Token_kind kind;
     size_t pos;
+    size_t len;
     size_t line;
-} TOKEN;
+} Token_t;
 
+void lex_file(Transpiler_context_t* ctx);
 
-void lex_file(TRANSPILER_CONTEXT* ctx);
+// // Define the macro for the enum and string array
+// #define BUILD_NODE_KIND \
+//     X(NODE_ILLEGAL)     \
+//     X(NODE_INTEGER)     \
+//     X(NODE_DECIMAL)     \
+//     X(NODE_IDENTIFIER)  \
+//     X(NODE_UNARY)       \
+//     X(NODE_BINARY)      \
+//     X(NODE_DECLARATION) \
+//     X(NODE_RETURN)      \
+//     X(NODE_PROGRAM)
 
+// // Generate the enum using the macro
+// typedef enum {
+//     #define X(node) node,
+//     BUILD_NODE_KIND
+//     #undef X
+// } Node_kind;
 
-// Define the macro for the enum and string array
-#define BUILD_NODE_KIND \
-    X(NODE_ILLEGAL)     \
-    X(NODE_INTEGER)     \
-    X(NODE_DECIMAL)     \
-    X(NODE_IDENTIFIER)  \
-    X(NODE_UNARY)       \
-    X(NODE_BINARY)      \
-    X(NODE_DECLARATION) \
-    X(NODE_RETURN)      \
-    X(NODE_PROGRAM)
+// // Generate the string array using the macro
+// static const char* list_of_node_kinds[] = {
+//     #define X(node) #node,
+//     BUILD_NODE_KIND
+//     #undef X
+// };
 
-// Generate the enum using the macro
-typedef enum {
-    #define X(node) node,
-    BUILD_NODE_KIND
-    #undef X
-} NODE_KIND;
+// struct Node {
+//     NODE_KIND    kind;
+//     size_t      pos;
+//     size_t      line;
 
-// Generate the string array using the macro
-static const char* list_of_node_kinds[] = {
-    #define X(node) #node,
-    BUILD_NODE_KIND
-    #undef X
-};
+//     size_t      scope_depth;              // distance from root in terms of scopes
+//     size_t      root_distance;           // distance from root in terms of nodes - parent linkages
 
-// Node structure
-typedef struct Nodes_List {
-    Node* nodes; 
-    size_t count; 
-    size_t capacity;
-} Nodes_List;
-
-struct Node {
-    NODE_KIND    kind;
-    size_t      pos;
-    size_t      line;
-
-    size_t      scope_depth;              // distance from root in terms of scopes
-    size_t      root_distance;           // distance from root in terms of nodes - parent linkages
-
-    Node*      parent;         // index of the parent node
-    Node*      scope_owner;      // index of the scope owner node
+//     Node*      parent;         // index of the parent node
+//     Node*      scope_owner;      // index of the scope owner node
     
-    union {
-        struct { char* msg; } Node_Ilegal;
-        struct { char* value; } Node_Integer;
-        struct { char* value; } Node_Decimal;
-        struct { char* value; } Node_Identifier;
-        // struct { char* operator; size_t right_index; } Node_Unary;
-        // struct { char* operator; size_t expressions[] } Node_Binary; // can a qualified chain just be binary?
-        // struct { bool is_var; bool is_new; bool is_assignment; Node* identifier; struct Node* expr; } Node_Declaration;
-        // struct { struct Node *expr; } Node_Return;
-        struct { Nodes_List statements; } Node_Program;
-    };
-};
+//     union {
+//         struct { char* msg; } Node_Ilegal;
+//         struct { char* value; } Node_Integer;
+//         struct { char* value; } Node_Decimal;
+//         struct { char* value; } Node_Identifier;
+//         // struct { char* operator; size_t right_index; } Node_Unary;
+//         // struct { char* operator; size_t expressions[] } Node_Binary; // can a qualified chain just be binary?
+//         // struct { bool is_var; bool is_new; bool is_assignment; Node* identifier; struct Node* expr; } Node_Declaration;
+//         // struct { struct Node *expr; } Node_Return;
+//         struct { Nodes_List statements; } Node_Program;
+//     };
+// };
 
-void parse_file(TRANSPILER_CONTEXT* ctx);
+// void parse_file(Transpiler_context* ctx);
 
-struct TRANSPILER_CONTEXT {
+struct Transpiler_context_t {
     char* filepath;
 
     // cursor
     size_t i;
 
     // Error handling
+    Transpiler_error_t* errors;
     size_t errors_count;
     size_t errors_capacity;
-    TRANSPILER_ERROR* errors;
 
     // Reading source
     char* src;
     size_t src_len;
+    double reading_duration;
 
     // Lexer
-    TOKEN* tokens;
+    Token_t* tokens;
     size_t tokens_count;
     size_t tokens_capacity;
     double lexing_duration;
@@ -162,8 +155,8 @@ struct TRANSPILER_CONTEXT {
     char* hFileCode;
 
     // Parser
-    Node* root;
-    double parsing_duration;
+    // Node* root;
+    // double parsing_duration;
 
     // // Codegen
     // cFileCode   : string = "";
@@ -175,12 +168,11 @@ struct TRANSPILER_CONTEXT {
     // exitCode    : number = 0;
     // codegenDuration: number = 0;
 
-} TRANSPILER_CONTEXT;
+};
 
-TRANSPILER_CONTEXT* create_transpiler_context(const char* filepath);
-void add_token_to_context(TRANSPILER_CONTEXT* ctx, TOKEN_KIND kind, char* value, size_t pos, size_t line);
-void add_error_to_context(TRANSPILER_CONTEXT* ctx, char* category, char* header, char* msg, char* filepath, size_t pos, size_t line, char* transpiler_file, size_t transpiler_line);
-void transpile_file(TRANSPILER_CONTEXT* ctx);
-
+void create_Transpiler_context_t(Transpiler_context_t* ctx, const char* filepath);
+void add_error_to_context(Transpiler_context_t* ctx, const char* category, const char* header, const char* msg, const char* filepath, size_t line, size_t pos, const char* transpiler_file, size_t transpiler_line);
+void add_token_to_context(Transpiler_context_t* ctx, Token_kind kind, size_t pos, size_t len, size_t line);
+void transpile_file(Transpiler_context_t* ctx);
 
 #endif

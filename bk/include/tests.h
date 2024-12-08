@@ -12,21 +12,17 @@ typedef struct {
     Test *tests;
 } Suite;
 
-bool test_01();
-bool test_02();
-bool test_03();
-
-Suite all_tests = {
-    "Test Suite",
-    (Test[]) {
-        {"Null input", false, test_01},
-        {"Null input with comments", false, test_02},
-        {"Simple integer", true, test_03},
+// Suite all_tests = {
+//     "Test Suite",
+//     (Test[]) {
+//         {"Null input", false, test_01},
+//         {"Null input with comments", false, test_02},
+//         {"Simple integer", true, test_03},
 
 
-        {NULL, false, NULL} // NULL entry to terminate the array
-    }
-};
+//         {NULL, false, NULL} // NULL entry to terminate the array
+//     }
+// };
 
 
 
