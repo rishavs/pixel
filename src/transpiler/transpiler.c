@@ -24,19 +24,13 @@ void transpile_file(Transpiler_context_t* ctx) {
         printf("%s: %s: %s\n", e.category, e.header, e.msg);
     }
 
-    // parse_file(ctx);
+    parse_file(ctx);
 
-    // // check if the parser initialized correctly
-    // if (!ctx->root) {
-    //     perror("Failed to parse the file");
-    //     return;
-    // }
-
-    // add dummy return value
-    ctx->cFileCode = "\
-int main() {\
-    return 0;\
-}\
-";
+    // check if the parser initialized correctly
+    printf("Nodes count: %zu\n", ctx->nodes_count);
+    for (size_t i = 0; i < ctx->nodes_count; i++) {
+        Node_t n = ctx->nodes[i];
+        printf("Node %zu: %s\n", i, list_of_node_kinds[n.kind]);
+    }
     
 };

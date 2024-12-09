@@ -112,14 +112,14 @@ struct Node_t {
     size_t      scope_depth;              // distance from root in terms of scopes
     size_t      root_distance;           // distance from root in terms of nodes - parent linkages
 
-    Node_t*     parent;         // index of the parent node
-    Node_t*     scope_owner;      // index of the scope owner node
+    size_t      parent;         // index of the parent node
+    size_t      scope_owner;      // index of the scope owner node
 
-    Node_t*     args;           // List of arguments
+    size_t*     args;           // List of arguments
     size_t      args_count;
     size_t      args_capacity;
 
-    Node_t*     children;       // List of children
+    size_t*     children;       // List of children
     size_t      children_count;
     size_t      children_capacity;
     
@@ -136,7 +136,7 @@ struct Node_t {
     // };
 };
 
-void parse_file(Transpiler_context* ctx);
+void parse_file(Transpiler_context_t* ctx);
 
 struct Transpiler_context_t {
     char* filepath;
@@ -160,16 +160,17 @@ struct Transpiler_context_t {
     size_t tokens_capacity;
     double lexing_duration;
 
-    char* cFileCode;
-    char* hFileCode;
+    char* c_code;
+    char* h_code;
 
     // Parser
-    Node_t* root;
+    // Node_t* root;
+    Node_t* nodes;
+    size_t nodes_count;
+    size_t nodes_capacity;
     double parsing_duration;
 
     // Codegen
-    cFileCode   : string = "";
-    hFileCode   : string = "";
     // currentDepth: number = 0;
     // usesString  : boolean = false;
     // usesInt     : boolean = false;
@@ -182,6 +183,9 @@ struct Transpiler_context_t {
 void create_Transpiler_context_t(Transpiler_context_t* ctx, const char* filepath);
 void add_error_to_context(Transpiler_context_t* ctx, const char* category, const char* header, const char* msg, const char* filepath, size_t line, size_t pos, const char* transpiler_file, size_t transpiler_line);
 void add_token_to_context(Transpiler_context_t* ctx, Token_kind kind, size_t pos, size_t len, size_t line);
+size_t add_node_to_context(Transpiler_context_t* ctx, Node_kind kind, size_t pos, size_t line);
+size_t add_reference_to_args (Transpiler_context_t* ctx, size_t node_index, size_t arg_index);
+size_t add_reference_to_children (Transpiler_context_t* ctx, size_t node_index, size_t child_index);
 void transpile_file(Transpiler_context_t* ctx);
 
 #endif

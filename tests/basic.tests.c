@@ -11,13 +11,14 @@ Test_Result test_01() {
         .passed = false 
     };
     char* src = "";
-    char* output = DEFAULT_CFILE_CODE;
+    char* c_out = DEFAULT_CFILE_CODE;
+    char* h_out = "";
     
     Transpiler_context_t ctx;
     create_Transpiler_context_t(&ctx, "");
     ctx.src = strdup(src);
     transpile_file(&ctx);
-    res.passed = strcmp(ctx.cFileCode, output) == 0;
+    res.passed = strcmp(ctx.c_code, c_out) == 0 && strcmp(ctx.h_code, h_out) == 0;
 
     return res;
 }
@@ -35,15 +36,15 @@ Test_Result test_02() {
     \
     line comment \
 ]- ";
-    char* output = DEFAULT_CFILE_CODE;
-
+    char* c_out = DEFAULT_CFILE_CODE;
+    char* h_out = "";
+    
     Transpiler_context_t ctx;
     create_Transpiler_context_t(&ctx, "");
     ctx.src = strdup(src);
     transpile_file(&ctx);
-
-    res.passed = strcmp(ctx.cFileCode, output) == 0;
-
+    res.passed = strcmp(ctx.c_code, c_out) == 0 && strcmp(ctx.h_code, h_out) == 0;
+    
     return res;
 }
 
@@ -55,19 +56,19 @@ Test_Result test_03() {
     };
 
     char* src = "var x = 10";
-    char* output = "#include <stdint.h>\
+    char* c_out = "#include <stdint.h>\
 \
 int main() {\
     int64_t x = 10;\
     return 0;\
 }";
-
+    char* h_out = "";
+    
     Transpiler_context_t ctx;
     create_Transpiler_context_t(&ctx, "");
-    ctx.src = src;
+    ctx.src = strdup(src);
     transpile_file(&ctx);
+    res.passed = strcmp(ctx.c_code, c_out) == 0 && strcmp(ctx.h_code, h_out) == 0;
     
-    res.passed = strcmp(ctx.cFileCode, output) == 0;
-
     return res;
 }
