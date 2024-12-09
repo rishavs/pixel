@@ -61,8 +61,7 @@ void lex_file(Transpiler_context_t* ctx) {
                 pos++;
             }
             if (!comment_closed) {
-                // add_error_to_list(errors, "SyntaxError", "Unclosed multi-line comment", "Unclosed multi-line comment", filepath, line, pos, __FILE__, __LINE__);
-                add_error_to_context(ctx, "SyntaxError", "Unclosed multi-line comment", "Unclosed multi-line comment", ctx->filepath, line, pos, __FILE__, __LINE__);
+                unclosed_delimiter_error(ctx, "multi-line comment", pos, line, __FILE__, __LINE__);
                 return;
             }
 
@@ -103,7 +102,7 @@ void lex_file(Transpiler_context_t* ctx) {
 
             char* buffer;
             buffer = calloc(pos - anchor + 1, sizeof(char));
-            if (buffer == NULL) fatal_memory_allocation_failure(__FILE__, __LINE__);
+            if (buffer == NULL) memory_allocation_failure(__FILE__, __LINE__);
             strncpy(buffer, ctx->src + anchor, pos - anchor);
             buffer[pos - anchor] = '\0';
 
@@ -147,7 +146,7 @@ void lex_file(Transpiler_context_t* ctx) {
          
             char* buffer;
             buffer = calloc(pos - anchor + 1, sizeof(char));
-            if (buffer == NULL) fatal_memory_allocation_failure(__FILE__, __LINE__);
+            if (buffer == NULL) memory_allocation_failure(__FILE__, __LINE__);
             strncpy(buffer, ctx->src + anchor, pos - anchor);
             buffer[pos - anchor] = '\0';
 
@@ -156,12 +155,7 @@ void lex_file(Transpiler_context_t* ctx) {
 
         // Handle illegal characters
         } else {
-            char* illegal_str = calloc(2, sizeof(char));
-            if (illegal_str == NULL) fatal_memory_allocation_failure(__FILE__, __LINE__);
-            illegal_str[0] = c;
-            illegal_str[1] = '\0';
-            add_error_to_context(ctx, "SyntaxError", "Illegal character in source", illegal_str, ctx->filepath, line, pos, __FILE__, __LINE__);
-            
+            illegal_char_error(ctx, c, pos, line, __FILE__, __LINE__);
             pos++;
         }
     }

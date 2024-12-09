@@ -21,7 +21,7 @@
         list->count = 0;                                    \
         list->capacity = initial_capacity ? initial_capacity : LIST_DEFAULT_CAPACITY; \
         list->data = calloc(list->capacity, sizeof(type)); \
-        if (!list->data) fatal_memory_allocation_failure(__FILE__, __LINE__); \
+        if (!list->data) memory_allocation_failure(__FILE__, __LINE__); \
     }                                                        \
                                                              \
     static inline void List_of_##name##_do_free(List_of_##name##_t* list) { \
@@ -35,7 +35,7 @@
         if (list->count == list->capacity) {               \
             list->capacity = list->capacity > 0 ? list->capacity * 2 : 1; \
             type *new_data = realloc(list->data, list->capacity * sizeof(type)); \
-            if (!new_data) fatal_memory_allocation_failure(__FILE__, __LINE__); \
+            if (!new_data) memory_allocation_failure(__FILE__, __LINE__); \
             list->data = new_data;                          \
         }                                                    \
         list->data[list->count++] = item;                  \

@@ -5,6 +5,7 @@
         "transpiler.h": "c",
         "errno.h": "c",
         "list.h": "c",
-        "tests.h": "c"
+        "tests.h": "c",
+        "list": "c"
     }
 }

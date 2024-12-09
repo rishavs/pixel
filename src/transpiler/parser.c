@@ -6,29 +6,79 @@
 #include "errors.h"
 #include "transpiler.h"
 
+
+// bool parse_declaration(Transpiler_context_t* ctx, size_t parent_index) {
+//     bool decl_res = false;
+
+//     Token_t token = ctx->tokens[ctx->i];
+
+//     // add node to context
+//     size_t decl_index = add_node_to_context(ctx, NODE_DECLARATION, token.pos, token.line);
+//     Node_t* decl_node = &ctx->nodes[decl_index];
+
+//     // increment cursor
+//     ctx->i++;
+//     if 
+//     token = ctx->i < ctx->tokens_count ? ctx->tokens[ctx->i] : NULL;
+
+//     // check if the declaration is a variable or a constant
+//     decl_node->Declaration_data.is_var = token.kind == TOKEN_VAR ? true : false;
+
+//     if (token.kind == TOKEN_VAR) {
+//         decl_node->Declaration_data.is_var = true;
+//     } else if (token.kind == TOKEN_CONST) {
+//         decl_node->Declaration_data.is_var = false;
+//     } 
+
+//     if (token.kind == TOKEN_LET) {
+//         size_t index = add_node_to_context(ctx, NODE_DECLARATION, token.pos, token.line);
+//         Node_t* decl_node = &ctx->nodes[index];
+
+//         decl_node->Declaration_data = (Declaration_data_t) {
+//             .is_var = token.kind == TOKEN_VAR,
+//             .is_new = false,
+//             .is_assignment = false,
+//             .identifier_index = 0,
+//             .expression_index = 0
+//         };
+
+//         decl_node->parent = parent_index;
+//         decl_node->scope_depth = 0;
+//         decl_node->root_distance = 0;
+//         decl_node->scope_owner = 0;
+
+//         // add_to_indices(parent->Program_data.statements, index, parent->Program_data.statements_count, parent->Program_data.statements_capacity);
+//         decl_res = true;
+//     }
+
+//     return decl_res;
+// }
+
+
 // void recover(Transpiler_context_t* ctx) {
 //     while (ctx->i < ctx->tokens_count && ctx->tokens[ctx->i].kind != TOKEN_EOF) {
 //         ctx->i++;
 //     }
 // }
 
-// Nodes_List parse_block(Transpiler_context_t* ctx) {
+// bool parse_block(Transpiler_context_t* ctx, size_t parent_index) {
+//     bool block_res = false;
 
-//     Nodes_List block = {
-//         .nodes = calloc(block.capacity, sizeof(Node)),
-//         .count = 0,
-//         .capacity = 8
-//     };
-//     if (block.nodes == NULL) fatal_memory_allocation_failure(__FILE__, __LINE__);
+//     // the statements list in parent should be already allocated
+//     Node_t* parent = &ctx->nodes[parent_index];
 
 //     while (ctx->i < ctx->tokens_count) {
 //         // in_recovery_loop = false;
 
-//         TOKEN token = ctx->tokens[ctx->i];
-//         TOKEN next = ctx->i + 1 < ctx->tokens_count ? ctx->tokens[ctx->i + 1] : NULL;
+//         Token_t token = ctx->tokens[ctx->i];
+//         Token_t next = ctx->i + 1 < ctx->tokens_count ? ctx->tokens[ctx->i + 1] : NULL;
 
-//         if (token.kind == TOKEN_CONST || token.kind == TOKEN_VAR) {
+//         if (token.kind == TOKEN_LET) {
 //             printf("Parsing Declaration\n");
+//             bool decl_res = parse_declaration(ctx, parent_index);
+//             if (!decl_res) {
+//                 recover(ctx);
+//             }
 //             // Node* decl_node = parse_declaration(ctx);
 //             // if (!decl_node || decl_node->kind == NODE_ILLEGAL) recover(ctx);
 //             // add_to_nodes_list(&block, decl_node);
@@ -50,12 +100,16 @@
 //         //     list_push(block, ret_node);
 
 //         } else {
-//             add_error_to_context(ctx, "SyntaxError", "Expected a statement, but instead found: ", token.value, ctx->filepath, token.line, token.pos, __FILE__, __LINE__);
+//             char* buffer = calloc(token.len + 1, sizeof(char));
+//             if (buffer == NULL) memory_allocation_failure(__FILE__, __LINE__);
+//             strncpy(buffer, ctx->src + token.pos, token.len);
+//             buffer[token.len] = '\0';
+//             add_error_to_context(ctx, "SyntaxError", "Expected a statement, but instead found: ", buffer, ctx->filepath, token.line, token.pos, __FILE__, __LINE__);
 //             ctx->i++;
 //         }
 //     }
 
-//     return block;
+//     return block_res;
 // }
 
 
@@ -66,10 +120,9 @@ void parse_file(Transpiler_context_t* ctx) {
     size_t index = add_node_to_context(ctx, NODE_PROGRAM, 0, 0);
 
     // create root node. As memory is already allocated, we can directly access the root node
-    Node_t* root = &ctx->nodes[0];
+    Node_t* root = &ctx->nodes[index];
 
     root->kind = NODE_PROGRAM;
-    root->len = 0;
 
     root->scope_depth = 0;
     root->root_distance = 0;
@@ -77,16 +130,15 @@ void parse_file(Transpiler_context_t* ctx) {
     root->parent = 0;
     root->scope_owner = 0;
 
-    root->args = NULL;
-    root->args_count = 0;
-    root->args_capacity = 0;
+    // Initialize the program node
+    // root->Program_data = (Program_data_t) {
+    //     .statements = NULL,
+    //     .statements_count = 0,
+    //     .statements_capacity = 0
+    // };
+    // root->Program_data.statements = calloc(root->Program_data.statements_capacity, sizeof(size_t));
+    // if (root->Program_data.statements == NULL) memory_allocation_failure(__FILE__, __LINE__);
 
-    root->children_count = 0;
-    root->children_capacity = 8;
-    root->children = calloc(root->children_capacity, sizeof(Node_t));
-    if (root->children == NULL) fatal_memory_allocation_failure(__FILE__, __LINE__);
-
-    
     // List* statements = parse_block(ctx);
     // for (size_t j = 0; j < statements->length; j++) {
     //     Node* stmt = statements->items[j];

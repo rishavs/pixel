@@ -37,7 +37,7 @@ static inline uint64_t fnv1a_hash(const char *key) {
         map->count = 0;                                            \
         map->capacity = initial_capacity ? initial_capacity : DICT_INITIAL_CAPACITY; \
         map->data = calloc(map->capacity, sizeof(Entry_of_##name##_t)); \
-        if (!map->data) fatal_memory_allocation_failure(__FILE__, __LINE__); \
+        if (!map->data) memory_allocation_failure(__FILE__, __LINE__); \
     }                                                              \
                                                                    \
     static inline void Dict_of_##name##_do_free(Dict_of_##name##_t *map) { \
@@ -54,7 +54,7 @@ static inline uint64_t fnv1a_hash(const char *key) {
         Entry_of_##name##_t *new_data = calloc(new_capacity, sizeof(Entry_of_##name##_t)); \
         if (!new_data) {                                           \
             free(map->data);                                       \
-            fatal_memory_allocation_failure(__FILE__, __LINE__);   \
+            memory_allocation_failure(__FILE__, __LINE__);   \
         }                                                          \
                                                                    \
         for (size_t i = 0; i < map->capacity; i++) {               \
@@ -86,7 +86,7 @@ static inline uint64_t fnv1a_hash(const char *key) {
             idx = (idx + 1) % map->capacity;                       \
         }                                                          \
         map->data[idx].key = strdup(key);                          \
-        if (!map->data[idx].key) fatal_memory_allocation_failure(__FILE__, __LINE__); \
+        if (!map->data[idx].key) memory_allocation_failure(__FILE__, __LINE__); \
         map->data[idx].value = value;                              \
         map->count++;                                              \
     }                                                              \
