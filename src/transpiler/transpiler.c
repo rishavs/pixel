@@ -4,7 +4,7 @@ void transpile_file(Transpiler_context_t* ctx) {
     // add dummy tokens & errors
     // TOKEN t = {TOKEN_IDENTIFIER, "dummy", 0, 0};
     // add_token_to_context(ctx, TOKEN_IDENTIFIER, "dummy", 0, 0);
-    add_error_to_context(ctx, "SyntaxError", "Unexpected Token", "Unexpected Token", "test.c", 0, 0, __FILE__, __LINE__);
+    // add_error_to_context(ctx, "SyntaxError", "Unexpected Token", "Unexpected Token", "test.c", 0, 0, __FILE__, __LINE__);
 
     lex_file(ctx);
 

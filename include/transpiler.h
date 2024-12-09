@@ -77,57 +77,66 @@ typedef struct Token_t {
 
 void lex_file(Transpiler_context_t* ctx);
 
-// // Define the macro for the enum and string array
-// #define BUILD_NODE_KIND \
-//     X(NODE_ILLEGAL)     \
-//     X(NODE_INTEGER)     \
-//     X(NODE_DECIMAL)     \
-//     X(NODE_IDENTIFIER)  \
-//     X(NODE_UNARY)       \
-//     X(NODE_BINARY)      \
-//     X(NODE_DECLARATION) \
-//     X(NODE_RETURN)      \
-//     X(NODE_PROGRAM)
+// Define the macro for the enum and string array
+#define BUILD_NODE_KIND \
+    X(NODE_ERROR)       \
+    X(NODE_INTEGER)     \
+    X(NODE_DECIMAL)     \
+    X(NODE_IDENTIFIER)  \
+    X(NODE_UNARY)       \
+    X(NODE_BINARY)      \
+    X(NODE_DECLARATION) \
+    X(NODE_RETURN)      \
+    X(NODE_PROGRAM)
 
-// // Generate the enum using the macro
-// typedef enum {
-//     #define X(node) node,
-//     BUILD_NODE_KIND
-//     #undef X
-// } Node_kind;
+// Generate the enum using the macro
+typedef enum {
+    #define X(node) node,
+    BUILD_NODE_KIND
+    #undef X
+} Node_kind;
 
-// // Generate the string array using the macro
-// static const char* list_of_node_kinds[] = {
-//     #define X(node) #node,
-//     BUILD_NODE_KIND
-//     #undef X
-// };
+// Generate the string array using the macro
+static const char* list_of_node_kinds[] = {
+    #define X(node) #node,
+    BUILD_NODE_KIND
+    #undef X
+};
 
-// struct Node {
-//     NODE_KIND    kind;
-//     size_t      pos;
-//     size_t      line;
+struct Node_t {
+    Node_kind   kind;
+    size_t      pos;
+    size_t      len;
+    size_t      line;
 
-//     size_t      scope_depth;              // distance from root in terms of scopes
-//     size_t      root_distance;           // distance from root in terms of nodes - parent linkages
+    size_t      scope_depth;              // distance from root in terms of scopes
+    size_t      root_distance;           // distance from root in terms of nodes - parent linkages
 
-//     Node*      parent;         // index of the parent node
-//     Node*      scope_owner;      // index of the scope owner node
+    Node_t*     parent;         // index of the parent node
+    Node_t*     scope_owner;      // index of the scope owner node
+
+    Node_t*     args;           // List of arguments
+    size_t      args_count;
+    size_t      args_capacity;
+
+    Node_t*     children;       // List of children
+    size_t      children_count;
+    size_t      children_capacity;
     
-//     union {
-//         struct { char* msg; } Node_Ilegal;
-//         struct { char* value; } Node_Integer;
-//         struct { char* value; } Node_Decimal;
-//         struct { char* value; } Node_Identifier;
-//         // struct { char* operator; size_t right_index; } Node_Unary;
-//         // struct { char* operator; size_t expressions[] } Node_Binary; // can a qualified chain just be binary?
-//         // struct { bool is_var; bool is_new; bool is_assignment; Node* identifier; struct Node* expr; } Node_Declaration;
-//         // struct { struct Node *expr; } Node_Return;
-//         struct { Nodes_List statements; } Node_Program;
-//     };
-// };
+    // union {
+    //     struct { char* msg; } Node_Error; // used to send back errors
+    //     struct { char* value; } Node_Integer;
+    //     struct { char* value; } Node_Decimal;
+    //     struct { char* value; } Node_Identifier;
+    //     // struct { char* operator; size_t right_index; } Node_Unary;
+    //     // struct { char* operator; size_t expressions[] } Node_Binary; // can a qualified chain just be binary?
+    //     // struct { bool is_var; bool is_new; bool is_assignment; Node* identifier; struct Node* expr; } Node_Declaration;
+    //     // struct { struct Node *expr; } Node_Return;
+    //     struct { Nodes_List statements; } Node_Program;
+    // };
+};
 
-// void parse_file(Transpiler_context* ctx);
+void parse_file(Transpiler_context* ctx);
 
 struct Transpiler_context_t {
     char* filepath;
@@ -155,12 +164,12 @@ struct Transpiler_context_t {
     char* hFileCode;
 
     // Parser
-    // Node* root;
-    // double parsing_duration;
+    Node_t* root;
+    double parsing_duration;
 
-    // // Codegen
-    // cFileCode   : string = "";
-    // hFileCode   : string = "";
+    // Codegen
+    cFileCode   : string = "";
+    hFileCode   : string = "";
     // currentDepth: number = 0;
     // usesString  : boolean = false;
     // usesInt     : boolean = false;

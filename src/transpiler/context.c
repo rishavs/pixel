@@ -28,7 +28,9 @@ void create_Transpiler_context_t(Transpiler_context_t* ctx, const char* filepath
     if (ctx->tokens == NULL) fatal_memory_allocation_failure(__FILE__, __LINE__);
 
     // Initialize parser
-
+    ctx->root = NULL;
+    ctx->parsing_duration = 0.0;
+    
 
     // add default c code
     ctx->cFileCode = DEFAULT_CFILE_CODE;

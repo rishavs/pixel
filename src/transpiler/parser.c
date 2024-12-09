@@ -61,19 +61,27 @@ Nodes_List parse_block(TRANSPILER_CONTEXT* ctx) {
 
 void parse_file(TRANSPILER_CONTEXT* ctx) {
 
-    // create root node
-    Node* root = calloc(1, sizeof(Node));
-    if (root == NULL) fatal_memory_allocation_failure(__FILE__, __LINE__);
-    root->kind = NODE_PROGRAM;
-    root->pos = 0;
-    root->line = 0;
-    root->scope_depth = 0;
-    root->root_distance = 0;
-    root->parent = NULL;
-    root->scope_owner = NULL;
-    root->Node_Program.statements = NULL;
-    root->Node_Program.statements_count = 0;
-    root->Node_Program.statements_capacity = 0;
+    ctx->root = calloc(1, sizeof(Node));
+    if (ctx->root == NULL) fatal_memory_allocation_failure(__FILE__, __LINE__);
+    ctx->root->kind = NODE_PROGRAM;
+    ctx->root->pos = 0;
+    ctx->root->len = 0;
+    ctx->root->line = 0;
+    
+    ctx->root->scope_depth = 0;
+    ctx->root->root_distance = 0;
+
+    ctx->root->parent = NULL;
+    ctx->root->scope_owner = NULL;
+    
+    ctx->root->args = NULL;
+    ctx->root->args_count = 0;
+    ctx->root->args_capacity = 0;
+
+    ctx->root->children_count = 0;
+    ctx->root->children_capacity = 8;
+    ctx->root->children = calloc(ctx->root->children_capacity, sizeof(Node));
+    if (ctx->root->children == NULL) fatal_memory_allocation_failure(__FILE__, __LINE__);
 
     // List* statements = parse_block(ctx);
     // for (size_t j = 0; j < statements->length; j++) {
