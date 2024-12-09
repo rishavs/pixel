@@ -20,4 +20,7 @@ void missing_syntax_error(Transpiler_context_t* ctx, const char* expected_syntax
 
 void missing_token_error(Transpiler_context_t* ctx, const char* expected_token, const char* expected_syntax, const size_t found_len, const size_t pos, size_t line, const char* transpiler_file, const size_t transpiler_line);
 
+
+
+
 #endif // PIXEL_ERRORS_H
