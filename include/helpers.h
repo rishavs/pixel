@@ -11,6 +11,8 @@ char*   to_uri_safe_string(const char* str);
 
 bool    string_starts_with(char *src, size_t src_len, size_t i,  char* frag);
 
+char* get_substring(char* src, size_t pos, size_t len);
+
 // char* get_duration(clock_t start, clock_t end) {
 //     double duration = ((double)(end - start))/CLOCKS_PER_SEC; // in seconds
 

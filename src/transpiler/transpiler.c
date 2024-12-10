@@ -21,24 +21,20 @@ void transpile_file(Transpiler_context_t* ctx) {
         printf("%s: %s\n", list_of_token_kinds[t.kind], buffer);
     }
 
-    // print errors
-    for (size_t i = 0; i < ctx->errors_count; i++) {
-        Transpiler_error_t e = ctx->errors[i];
-        fprintf(stderr, "\033[0;31m%s %s", e.category, e.msg);
-        fprintf(stderr, en_us[RES_ERROR_LOCATION], e.pos, e.line, e.filepath);
-        fprintf(stderr, "\n");
-        perror(en_us[RES_INTERNAL_PERROR]);
-        fprintf(stderr, en_us[RES_INTERNAL_LOCATION], e.transpiler_line, e.transpiler_file);
-        fprintf(stderr, "\n\033[0m");
+
+    parse_file(ctx);
+
+    // check if the parser initialized correctly
+    printf("Nodes count: %zu\n", ctx->nodes_count);
+    for (size_t i = 0; i < ctx->nodes_count; i++) {
+        Node_t n = ctx->nodes[i];
+        printf("Node %zu: %s\n", i, list_of_node_kinds[n.kind]);
     }
 
-    // parse_file(ctx);
 
-    // // check if the parser initialized correctly
-    // printf("Nodes count: %zu\n", ctx->nodes_count);
-    // for (size_t i = 0; i < ctx->nodes_count; i++) {
-    //     Node_t n = ctx->nodes[i];
-    //     printf("Node %zu: %s\n", i, list_of_node_kinds[n.kind]);
-    // }
+    
+    // print errors
+    // print_errors(ctx);
+    
     
 };

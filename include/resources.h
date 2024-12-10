@@ -24,6 +24,8 @@ typedef enum {
     // Error messages
     RES_ILLEGAL_CHAR_MSG,
     RES_UNCLOSED_DELIMITER_MSG,
+    RES_MISSING_STATEMENT_MSG,
+    RES_MISSING_EXPRESSION_MSG,
     RES_MISSING_SYNTAX_MSG,
     RES_MISSING_TOKEN_MSG,
 
@@ -48,6 +50,8 @@ static const char* en_us[RES_RESOURCE_COUNT] = {
     
     [RES_ILLEGAL_CHAR_MSG]      = "Found illegal character \"%c\", ",
     [RES_UNCLOSED_DELIMITER_MSG] = "Found unclosed delimiter \"%s\", ",
+    [RES_MISSING_STATEMENT_MSG]    = "Expected a statement, but instead found \"%s\", ",
+    [RES_MISSING_EXPRESSION_MSG]    = "Expected an expression, but instead found \"%s\", ",
     [RES_MISSING_SYNTAX_MSG]    = "Expected \"%s\", but instead found \"%s\", ",
     [RES_MISSING_TOKEN_MSG]     = "Expected \"%s\", but instead found \"%s\", ",
 };

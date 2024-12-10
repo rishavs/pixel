@@ -145,19 +145,14 @@ void lex_file(Transpiler_context_t* ctx) {
                 }
                 pos++;
             }
-         
-            char* buffer;
-            buffer = calloc(pos - anchor + 1, sizeof(char));
-            if (buffer == NULL) memory_allocation_failure(pos, line, ctx->filepath, __FILE__, __LINE__);
-            strncpy(buffer, ctx->src + anchor, pos - anchor);
-            buffer[pos - anchor] = '\0';
-
             add_token_to_context(ctx, number_kind, anchor, pos - anchor, line);
 
 
         // Handle illegal characters
         } else {
-            char err_msg[256];
+            char* err_msg = calloc(strlen(en_us[RES_ILLEGAL_CHAR_MSG]) + 1, sizeof(char));
+            if (err_msg == NULL) memory_allocation_failure(pos, line, ctx->filepath, __FILE__, __LINE__);
+
             sprintf(err_msg, en_us[RES_ILLEGAL_CHAR_MSG], c);
             add_error_to_context(ctx, en_us[RES_SYNTAX_ERROR_CAT], err_msg, pos, line, __FILE__, __LINE__);
             pos++;

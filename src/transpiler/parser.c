@@ -3,115 +3,136 @@
 #include <string.h>
 #include <stdbool.h>
 
+#include "helpers.h"
+#include "resources.h"
 #include "errors.h"
 #include "transpiler.h"
 
+bool parse_expression(Transpiler_context_t* ctx, size_t parent_index, size_t scope_owner_index);
 
-// bool parse_declaration(Transpiler_context_t* ctx, size_t parent_index) {
-//     bool decl_res = false;
+bool parse_declaration(Transpiler_context_t* ctx, size_t parent_index, size_t scope_owner_index) {
+    bool decl_res = false;
 
-//     Token_t token = ctx->tokens[ctx->i];
+    Token_t token = ctx->tokens[ctx->i];
+    Token_t next = (ctx->i + 1 < ctx->tokens_count) ? ctx->tokens[ctx->i + 1] : (Token_t){0};
 
-//     // add node to context
-//     size_t decl_index = add_node_to_context(ctx, NODE_DECLARATION, token.pos, token.line);
-//     Node_t* decl_node = &ctx->nodes[decl_index];
+    // add node to context
+    size_t decl_index = add_node_to_context(ctx, NODE_DECLARATION, token.pos, token.line);
+    Node_t* decl_node = &ctx->nodes[decl_index];
+    Node_t* parent = &ctx->nodes[parent_index];
 
-//     // increment cursor
-//     ctx->i++;
-//     if 
-//     token = ctx->i < ctx->tokens_count ? ctx->tokens[ctx->i] : NULL;
+    decl_node->parent = parent_index;
+    decl_node->scope_depth = parent->scope_depth + 1;
+    decl_node->root_distance = parent->root_distance + 1;
+    decl_node->scope_owner = scope_owner_index;
 
-//     // check if the declaration is a variable or a constant
-//     decl_node->Declaration_data.is_var = token.kind == TOKEN_VAR ? true : false;
+    // increment cursor
+    ctx->i++;
+    token = ctx->i < ctx->tokens_count ? ctx->tokens[ctx->i] : (Token_t){0};
 
-//     if (token.kind == TOKEN_VAR) {
-//         decl_node->Declaration_data.is_var = true;
-//     } else if (token.kind == TOKEN_CONST) {
-//         decl_node->Declaration_data.is_var = false;
-//     } 
+    // check if the declaration is a variable or a constant
+    decl_node->Declaration_data.is_var = token.kind == TOKEN_VAR ? true : false;
 
-//     if (token.kind == TOKEN_LET) {
-//         size_t index = add_node_to_context(ctx, NODE_DECLARATION, token.pos, token.line);
-//         Node_t* decl_node = &ctx->nodes[index];
+    if (token.kind == TOKEN_VAR) {
+        decl_node->Declaration_data.is_var = true;
+    } else if (token.kind == TOKEN_CONST) {
+        decl_node->Declaration_data.is_var = false;
+    } 
 
-//         decl_node->Declaration_data = (Declaration_data_t) {
-//             .is_var = token.kind == TOKEN_VAR,
-//             .is_new = false,
-//             .is_assignment = false,
-//             .identifier_index = 0,
-//             .expression_index = 0
-//         };
+    // Expect an identifier
+    ctx->i++;
+    token = ctx->i < ctx->tokens_count ? ctx->tokens[ctx->i] : (Token_t){0};
+    if (token.kind != TOKEN_IDENTIFIER) {
+        size_t err_msg_len = strlen(en_us[RES_MISSING_STATEMENT_MSG]) + token.len + 1;
+        char* err_msg = malloc(err_msg_len);
+        if (err_msg == NULL) memory_allocation_failure(token.pos, token.line, ctx->filepath, __FILE__, __LINE__);
 
-//         decl_node->parent = parent_index;
-//         decl_node->scope_depth = 0;
-//         decl_node->root_distance = 0;
-//         decl_node->scope_owner = 0;
+        snprintf(err_msg, err_msg_len, en_us[RES_MISSING_STATEMENT_MSG], get_substring(ctx->src, token.pos, token.len));
+        add_error_to_context(ctx, en_us[RES_SYNTAX_ERROR_CAT], err_msg, token.pos, token.line, __FILE__, __LINE__);
 
-//         // add_to_indices(parent->Program_data.statements, index, parent->Program_data.statements_count, parent->Program_data.statements_capacity);
-//         decl_res = true;
-//     }
+        free(err_msg);
+        return false;
+    }
 
-//     return decl_res;
-// }
+    // Store the identifier index
+    decl_node->Declaration_data.identifier_index = add_node_to_context(ctx, NODE_IDENTIFIER, token.pos, token.line);
 
+    // Expect an assignment operator
+    ctx->i++;
+    token = ctx->i < ctx->tokens_count ? ctx->tokens[ctx->i] : (Token_t){0};
+    if (token.kind != TOKEN_ASSIGN) {
+        size_t err_msg_len = strlen(en_us[RES_MISSING_STATEMENT_MSG]) + token.len + 1;
+        char* err_msg = malloc(err_msg_len);
+        if (err_msg == NULL) memory_allocation_failure(token.pos, token.line, ctx->filepath, __FILE__, __LINE__);
 
-// void recover(Transpiler_context_t* ctx) {
-//     while (ctx->i < ctx->tokens_count && ctx->tokens[ctx->i].kind != TOKEN_EOF) {
-//         ctx->i++;
-//     }
-// }
+        snprintf(err_msg, err_msg_len, en_us[RES_MISSING_STATEMENT_MSG], get_substring(ctx->src, token.pos, token.len));
+        add_error_to_context(ctx, en_us[RES_SYNTAX_ERROR_CAT], err_msg, token.pos, token.line, __FILE__, __LINE__);
 
-// bool parse_block(Transpiler_context_t* ctx, size_t parent_index) {
-//     bool block_res = false;
+        free(err_msg);
+        return false;
+    }
 
-//     // the statements list in parent should be already allocated
-//     Node_t* parent = &ctx->nodes[parent_index];
+    // Parse the expression
+    ctx->i++;
+    decl_node->Declaration_data.expression_index = add_node_to_context(ctx, NODE_INTEGER, token.pos, token.line);
+    decl_res = parse_expression(ctx, decl_node->Declaration_data.expression_index, scope_owner_index);
 
-//     while (ctx->i < ctx->tokens_count) {
-//         // in_recovery_loop = false;
+    return decl_res;
+}
 
-//         Token_t token = ctx->tokens[ctx->i];
-//         Token_t next = ctx->i + 1 < ctx->tokens_count ? ctx->tokens[ctx->i + 1] : NULL;
+bool parse_expression(Transpiler_context_t* ctx, size_t parent_index, size_t scope_owner_index) {
+    Token_t token = ctx->tokens[ctx->i];
+    if (token.kind == TOKEN_INTEGER) {
+        // Handle integer literal
+        Node_t* expr_node = &ctx->nodes[parent_index];
+        expr_node->kind = NODE_INTEGER;
+        expr_node->Integer_data.len = token.len;
+        ctx->i++;
+        return true;
+    }
+    // Add more expression parsing logic here if needed
+    return false;
+}
 
-//         if (token.kind == TOKEN_LET) {
-//             printf("Parsing Declaration\n");
-//             bool decl_res = parse_declaration(ctx, parent_index);
-//             if (!decl_res) {
-//                 recover(ctx);
-//             }
-//             // Node* decl_node = parse_declaration(ctx);
-//             // if (!decl_node || decl_node->kind == NODE_ILLEGAL) recover(ctx);
-//             // add_to_nodes_list(&block, decl_node);
+void recover(Transpiler_context_t* ctx) {
+    while (ctx->i < ctx->tokens_count && ctx->tokens[ctx->i].kind != TOKEN_EOF) {
+        ctx->i++;
+    }
+}
 
-//         // } else if (token->kind == TOKEN_IDENTIFIER && next_token && next_token->kind == TOKEN_ASSIGN) {
-//         //     Node* decl_node = parse_declaration(ctx);
-//         //     if (!decl_node) {
-//         //         in_recovery_loop = true;
-//         //         return block;
-//         //     }
-//         //     list_push(block, decl_node);
+bool parse_block(Transpiler_context_t* ctx, size_t parent_index, size_t scope_owner_index) {
+    bool block_res = false;
 
-//         // } else if (token->kind == TOKEN_RETURN) {
-//         //     Node* ret_node = parse_return(ctx);
-//         //     if (!ret_node) {
-//         //         in_recovery_loop = true;
-//         //         return block;
-//         //     }
-//         //     list_push(block, ret_node);
+    // the statements list in parent should be already allocated
+    Node_t* parent = &ctx->nodes[parent_index];
 
-//         } else {
-//             char* buffer = calloc(token.len + 1, sizeof(char));
-//             if (buffer == NULL) memory_allocation_failure(__FILE__, __LINE__);
-//             strncpy(buffer, ctx->src + token.pos, token.len);
-//             buffer[token.len] = '\0';
-//             add_error_to_context(ctx, "SyntaxError", "Expected a statement, but instead found: ", buffer, ctx->filepath, token.line, token.pos, __FILE__, __LINE__);
-//             ctx->i++;
-//         }
-//     }
+    while (ctx->i < ctx->tokens_count) {
+        Token_t token = ctx->tokens[ctx->i];
+        Token_t next = (ctx->i + 1 < ctx->tokens_count) ? ctx->tokens[ctx->i + 1] : (Token_t){0};
 
-//     return block_res;
-// }
+        if (token.kind == TOKEN_LET) {
+            printf("Parsing Declaration\n");
+            bool decl_res = parse_declaration(ctx, parent_index, scope_owner_index);
+            if (decl_res) {
+                block_res = true;
+            } else {
+                recover(ctx);
+            }
+        } else {
+            size_t err_msg_len = strlen(en_us[RES_MISSING_STATEMENT_MSG]) + token.len + 1;
+            char* err_msg = malloc(err_msg_len);
+            if (err_msg == NULL) memory_allocation_failure(token.pos, token.line, ctx->filepath, __FILE__, __LINE__);
 
+            snprintf(err_msg, err_msg_len, en_us[RES_MISSING_STATEMENT_MSG], get_substring(ctx->src, token.pos, token.len));
+            add_error_to_context(ctx, en_us[RES_SYNTAX_ERROR_CAT], err_msg, token.pos, token.line, __FILE__, __LINE__);
+
+            free(err_msg);
+            ctx->i++;
+        }
+    }
+
+    return block_res;
+}
 
 void parse_file(Transpiler_context_t* ctx) {
     // set cursor
@@ -131,23 +152,10 @@ void parse_file(Transpiler_context_t* ctx) {
     root->scope_owner = 0;
 
     // Initialize the program node
-    // root->Program_data = (Program_data_t) {
-    //     .statements = NULL,
-    //     .statements_count = 0,
-    //     .statements_capacity = 0
-    // };
-    // root->Program_data.statements = calloc(root->Program_data.statements_capacity, sizeof(size_t));
-    // if (root->Program_data.statements == NULL) memory_allocation_failure(__FILE__, __LINE__);
+    root->Program_data.statements_count = 0;
+    root->Program_data.statements_capacity = 8;
+    root->Program_data.statements = calloc(root->Program_data.statements_capacity, sizeof(size_t));
+    if (root->Program_data.statements == NULL) memory_allocation_failure(0, 0, ctx->filepath, __FILE__, __LINE__);
 
-    // List* statements = parse_block(ctx);
-    // for (size_t j = 0; j < statements->length; j++) {
-    //     Node* stmt = statements->items[j];
-    //     stmt->parent = program;
-    //     stmt->depth = 1;
-    // }
-
-    // printf("\nNumber of Statements: %zu\n", statements->length);
-    // program->Node_Program.block = statements;
-
-
+    bool res = parse_block(ctx, index, index);
 }

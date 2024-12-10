@@ -58,7 +58,7 @@ size_t add_node_to_context(Transpiler_context_t* ctx, Node_kind kind, size_t pos
     if (ctx->nodes_count >= ctx->nodes_capacity) {
         ctx->nodes_capacity *= 2;
         ctx->nodes = realloc(ctx->nodes, ctx->nodes_capacity * sizeof(Node_t));
-        if (ctx->nodes == NULL) memory_allocation_failure(0, 0, ctx->filepath, __FILE__, __LINE__);
+        if (ctx->nodes == NULL) memory_allocation_failure(pos, line, ctx->filepath, __FILE__, __LINE__);
     }
 
     size_t at = ctx->nodes_count;

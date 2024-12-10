@@ -17,9 +17,9 @@
 // Create an array of the tests
 Test_Fun tests[] = {
     // Basic tests
-    test_01,
-    test_02,
-    test_03,
+    empty_source_code,
+    only_comments_and_spaces,
+    basic_var_int_declaration,
 
     // // List tests
     // list_of_int_can_push_pop_get_set,

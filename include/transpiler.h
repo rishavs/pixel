@@ -173,4 +173,6 @@ size_t add_node_to_context(Transpiler_context_t* ctx, Node_kind kind, size_t pos
 size_t add_to_indices(size_t* indices_list, size_t index, size_t count, size_t capacity);
 void transpile_file(Transpiler_context_t* ctx);
 
+void print_errors (Transpiler_context_t* ctx);
+
 #endif
