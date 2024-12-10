@@ -6,9 +6,9 @@
 
 #include "transpiler.h"
 
-void memory_allocation_failure(char* transpiler_file, size_t transpiler_line);
+void memory_allocation_failure(size_t pos, size_t line, const char* filepath, char* transpiler_file, size_t transpiler_line);
 
-void unhandled_error(const char* filepath, size_t at, size_t line, char* transpiler_file, size_t transpiler_line);
+void unhandled_error(size_t pos, size_t line, const char* filepath, char* transpiler_file, size_t transpiler_line);
 
 void add_error_to_context(Transpiler_context_t* ctx, const char* category, const char* msg, const size_t pos, const size_t line, const char* transpiler_file, const size_t transpiler_line);
 

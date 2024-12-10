@@ -5,7 +5,8 @@
 typedef enum {
     // special content
     RES_ERROR_LOCATION,
-    RES_ERROR_INTERNAL,
+    RES_INTERNAL_PERROR,
+    RES_INTERNAL_LOCATION,
 
     // Error Categories
     RES_MEMORY_FAILURE_CAT,
@@ -31,23 +32,24 @@ typedef enum {
 
 // Generate the string array using the macro
 static const char* en_us[RES_RESOURCE_COUNT] = {
-    [RES_ERROR_LOCATION] = "at %zu:%zu in the file \"%s\"",
-    [RES_ERROR_INTERNAL] = "Internal: The compiler failed at line %zu in the file \"%s\"",
+    [RES_ERROR_LOCATION]        = "at %zu:%zu in the file \"%s\"",
+    [RES_INTERNAL_PERROR]       = "Internal Note",
+    [RES_INTERNAL_LOCATION]     = "Internal Note: Failed in the compiler code at line %zu in the file \"%s\"",
     
-    [RES_MEMORY_FAILURE_CAT] = "MemoryError",
-    [RES_UNHANDLED_ERROR_CAT] = "UnhandledError",
-    [RES_SYNTAX_ERROR_CAT] = "SyntaxError",
+    [RES_MEMORY_FAILURE_CAT]    = "[ FATAL ] Memory Failure!",
+    [RES_UNHANDLED_ERROR_CAT]   = "[ FATAL ] Unhandled Failure!",
+    [RES_SYNTAX_ERROR_CAT]      = "[ ERROR ] Malformed Syntax!",
 
-    [RES_MEMORY_FAILURE_MSG] = "Memory Allocation Failed!",
-    [RES_MEMORY_FAILURE_NOTE] = "Note: Your device might have run out of memory. Please close other programs and try again.",
+    [RES_MEMORY_FAILURE_MSG]    = "Unable to allocate memory for compilation",
+    [RES_MEMORY_FAILURE_NOTE]   = "Note: Your device might have run out of memory. Please close other programs and try again.",
     
-    [RES_UNHANDLED_ERROR_MSG] = "Found an unhandled error at %zu on line %zu in %s",
-    [RES_UNHANDLED_ERROR_NOTE] = "Note: This is a bug in the compiler! Please report with minimal reproducible code.",
+    [RES_UNHANDLED_ERROR_MSG]   = "Found an unhandled error during compilation ",
+    [RES_UNHANDLED_ERROR_NOTE]  = "Note: This is likely not a bug in your code, but in the compiler! Please report with minimal reproducible code.",
     
-    [RES_ILLEGAL_CHAR_MSG] = "Found illegal character \"%c\", ",
+    [RES_ILLEGAL_CHAR_MSG]      = "Found illegal character \"%c\", ",
     [RES_UNCLOSED_DELIMITER_MSG] = "Found unclosed delimiter \"%s\", ",
-    [RES_MISSING_SYNTAX_MSG] = "Expected \"%s\", but instead found \"%s\", ",
-    [RES_MISSING_TOKEN_MSG] = "Expected \"%s\", but instead found \"%s\", ",
+    [RES_MISSING_SYNTAX_MSG]    = "Expected \"%s\", but instead found \"%s\", ",
+    [RES_MISSING_TOKEN_MSG]     = "Expected \"%s\", but instead found \"%s\", ",
 };
 
 // const char* error_message = en_us_error_resources[RES_MEMORY_FAILURE_MSG];

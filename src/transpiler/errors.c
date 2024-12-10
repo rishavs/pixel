@@ -2,23 +2,29 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "resources.h"
 #include "transpiler.h"
 
 // Memory allocaltion failed. Fatal failure.
-void memory_allocation_failure(char* transpiler_file, size_t transpiler_line) {
-    fprintf(stderr, "\033[0;31m[ FATAL ] "); // Red color for FAILURE
-    perror("Memory Allocation Failed!");
-    fprintf(stderr, "Note: Your device might have run out of memory. Please close other programs and try again.\n\033[0m");
-    fprintf(stderr, "Internal: Failure found in the compiler at line %zu in \"%s\"" , transpiler_line, transpiler_file);
+void memory_allocation_failure(size_t pos, size_t line, const char* filepath, char* transpiler_file, size_t transpiler_line) {
+    fprintf(stderr, "\033[0;31m%s %s ", en_us[RES_MEMORY_FAILURE_CAT], en_us[RES_MEMORY_FAILURE_MSG]);
+    if (pos && line && filepath) { // memory failures need not be tied to user code
+        fprintf(stderr, en_us[RES_ERROR_LOCATION], pos, line, filepath);
+    };   
+    fprintf(stderr, "\n%s\n", en_us[RES_MEMORY_FAILURE_NOTE]);
+    perror(en_us[RES_INTERNAL_PERROR]);
+    fprintf(stderr, en_us[RES_INTERNAL_LOCATION], transpiler_line, transpiler_file);
+    fprintf(stderr, "\n\033[0m");
     exit(EXIT_FAILURE);
 }
 
-// Unhandled error. Fatal failure.
-void unhandled_error(const char* filepath, size_t at, size_t line, char* transpiler_file, size_t transpiler_line) {
-    fprintf(stderr, "\033[0;31m[ FATAL ] "); // Red color for FAILURE
-    fprintf(stderr, "Found an unhandled error at %zu on line %zu in %s\n", at, line, filepath);
-    fprintf(stderr, "Note: This is a bug in the compiler! Please report with minimal reproducible code.\n\033[0m");
-    fprintf(stderr, "Internal: Failure found in the compiler at line %zu in \"%s\"" , transpiler_line, transpiler_file);
+void unhandled_error(size_t pos, size_t line, const char* filepath, char* transpiler_file, size_t transpiler_line){
+    fprintf(stderr, "\033[0;31m%s %s", en_us[RES_UNHANDLED_ERROR_CAT], en_us[RES_UNHANDLED_ERROR_MSG]);
+    fprintf(stderr, en_us[RES_ERROR_LOCATION], pos, line, filepath);
+    fprintf(stderr, "\n%s\n", en_us[RES_UNHANDLED_ERROR_NOTE]);
+    perror(en_us[RES_INTERNAL_PERROR]);
+    fprintf(stderr, en_us[RES_INTERNAL_LOCATION], transpiler_line, transpiler_file);
+    fprintf(stderr, "\n\033[0m");
     exit(EXIT_FAILURE);
 }
 
@@ -27,24 +33,17 @@ void add_error_to_context(Transpiler_context_t* ctx, const char* category, const
     if (ctx->errors_count >= ctx->errors_capacity - 1) {
         ctx->errors_capacity *= 2;
         ctx->errors = realloc(ctx->errors, ctx->errors_capacity * sizeof(Transpiler_error_t));
-        if (ctx->errors == NULL) memory_allocation_failure(__FILE__, __LINE__);
+        if (ctx->errors == NULL) memory_allocation_failure(pos, line, ctx->filepath, __FILE__, __LINE__);
     }
 
-    ctx->errors[ctx->errors_count].category = strdup(category);
-
     // TODO - handle very long file names? dynamically allocate memory?
-    size_t msg_len = strlen(msg);
-    char* error_pos = 
-    sprintf("at %zu:%zu in the file \"%s\"\n", pos, line, ctx->filepath);
-    size_t error_pos_len = strlen(error_pos);
-    ctx->errors[ctx->errors_count].msg = calloc(msg_len + error_pos_len + 1, sizeof(char));
-    if (ctx->errors[ctx->errors_count].msg == NULL) memory_allocation_failure(__FILE__, __LINE__);
-    sprintf(ctx->errors[ctx->errors_count].msg, "%s %s", msg, error_pos);
+    ctx->errors[ctx->errors_count].category = strdup(category);
+    ctx->errors[ctx->errors_count].msg = strdup(msg);
 
     ctx->errors[ctx->errors_count].pos = pos;
     ctx->errors[ctx->errors_count].line = line;
-    ctx->errors[ctx->errors_count].filepath = ctx->filepath;
-    ctx->errors[ctx->errors_count].transpiler_file = transpiler_file;
+    ctx->errors[ctx->errors_count].filepath = strdup(ctx->filepath);
+    ctx->errors[ctx->errors_count].transpiler_file = strdup(transpiler_file);
     ctx->errors[ctx->errors_count].transpiler_line = transpiler_line;
 
     ctx->errors_count++;
@@ -53,50 +52,50 @@ void add_error_to_context(Transpiler_context_t* ctx, const char* category, const
 // --------------------------------------
 // Lexer Errors
 // --------------------------------------
-void illegal_char_error(Transpiler_context_t* ctx, const char c, const size_t pos, const size_t line, const char* transpiler_file, const size_t transpiler_line) {
-    add_error_to_context(ctx, 
-        "SyntaxError", 
-        sprintf("Found illegal character \"%c\", ", c), 
-        pos, line, transpiler_file, transpiler_line
-    );
-}
+// void illegal_char_error(Transpiler_context_t* ctx, const char c, const size_t pos, const size_t line, const char* transpiler_file, const size_t transpiler_line) {
+//     add_error_to_context(ctx,
+//         en_us[RES_SYNTAX_ERROR_CAT],
+//         en_us[RES_ILLEGAL_CHAR_MSG],
+//         pos, line, transpiler_file, transpiler_line
+//     );
+// }
 
-void unclosed_delimiter_error(Transpiler_context_t* ctx, char* delim, size_t pos, size_t line, char* transpiler_file, size_t transpiler_line) {
-    add_error_to_context(ctx, 
-        "SyntaxError", 
-        sprintf("Found an unclosed delimiter \"%s\", ", delim),
-        pos, line, transpiler_file, transpiler_line
-    );
-}
+// void unclosed_delimiter_error(Transpiler_context_t* ctx, char* delim, size_t pos, size_t line, char* transpiler_file, size_t transpiler_line) {
+//     add_error_to_context(ctx,
+//         en_us[RES_SYNTAX_ERROR_CAT],
+//         sprintf("Found an unclosed delimiter \"%s\", ", delim),
+//         pos, line, transpiler_file, transpiler_line
+//     );
+// }
 
 // --------------------------------------
 // Parser Errors
 // --------------------------------------
-void missing_syntax_error(Transpiler_context_t* ctx, const char* expected_syntax, const size_t found_len, const size_t pos, size_t line, const char* transpiler_file, const size_t transpiler_line) {
-    char* found = calloc (found_len + 1, sizeof(char));
-    if (found == NULL) memory_allocation_failure(__FILE__, __LINE__);
-    strncpy(found, ctx->src + pos, found_len);
-    found[found_len] = '\0';
+// void missing_syntax_error(Transpiler_context_t* ctx, const char* expected_syntax, const size_t found_len, const size_t pos, size_t line, const char* transpiler_file, const size_t transpiler_line) {
+//     char* found = calloc (found_len + 1, sizeof(char));
+//     if (found == NULL) memory_allocation_failure(0, 0, ctx->filepath, __FILE__, __LINE__);
+//     strncpy(found, ctx->src + pos, found_len);
+//     found[found_len] = '\0';
 
-    add_error_to_context(ctx, 
-        "SyntaxError", 
-        sprintf("Expected %s, but instead found \"%s\", ", expected_syntax, found ), 
-        pos, line, transpiler_file, transpiler_line
-    );
-}
+//     add_error_to_context(ctx,
+//         "SyntaxError",
+//         sprintf("Expected %s, but instead found \"%s\", ", expected_syntax, found ),
+//         pos, line, transpiler_file, transpiler_line
+//     );
+// }
 
-void missing_token_error(Transpiler_context_t* ctx, const char* expected_token, const char* expected_syntax, const size_t found_len, const size_t pos, size_t line, const char* transpiler_file, const size_t transpiler_line) {
-    char* found = calloc (found_len + 1, sizeof(char));
-    if (found == NULL) memory_allocation_failure(__FILE__, __LINE__);
-    strncpy(found, ctx->src + pos, found_len);
-    found[found_len] = '\0';
+// void missing_token_error(Transpiler_context_t* ctx, const char* expected_token, const char* expected_syntax, const size_t found_len, const size_t pos, size_t line, const char* transpiler_file, const size_t transpiler_line) {
+//     char* found = calloc (found_len + 1, sizeof(char));
+//     if (found == NULL) memory_allocation_failure(0, 0, ctx->filepath, __FILE__, __LINE__);
+//     strncpy(found, ctx->src + pos, found_len);
+//     found[found_len] = '\0';
 
-    add_error_to_context(ctx, 
-        "SyntaxError", 
-        sprintf("Expected \"%s\" for %s, but instead found \"%s\", ", expected_token, expected_syntax, found ), 
-        pos, line, transpiler_file, transpiler_line
-    );
-}
+//     add_error_to_context(ctx,
+//         "SyntaxError",
+//         sprintf("Expected \"%s\" for %s, but instead found \"%s\", ", expected_token, expected_syntax, found ),
+//         pos, line, transpiler_file, transpiler_line
+//     );
+// }
 
 // --------------------------------------
 // Symbol building Errors

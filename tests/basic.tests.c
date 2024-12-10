@@ -10,6 +10,7 @@ Test_Result test_01() {
         .desc = "Empty source code",
         .passed = false 
     };
+
     char* src = "";
     char* c_out = DEFAULT_CFILE_CODE;
     char* h_out = "";
@@ -55,7 +56,7 @@ Test_Result test_03() {
         .passed = false 
     };
 
-    char* src = "var x = 10";
+    char* src = "var x =/ 10";
     char* c_out = "#include <stdint.h>\
 \
 int main() {\

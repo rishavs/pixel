@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#include "resources.h"
 #include "errors.h"
 #include "helpers.h"
 #include "transpiler.h"
@@ -61,7 +62,8 @@ void lex_file(Transpiler_context_t* ctx) {
                 pos++;
             }
             if (!comment_closed) {
-                unclosed_delimiter_error(ctx, "multi-line comment", pos, line, __FILE__, __LINE__);
+                // raise unclosed delimiter error
+                add_error_to_context(ctx, en_us[RES_SYNTAX_ERROR_CAT], en_us[RES_UNCLOSED_DELIMITER_MSG], pos, line, __FILE__, __LINE__);
                 return;
             }
 
@@ -102,7 +104,7 @@ void lex_file(Transpiler_context_t* ctx) {
 
             char* buffer;
             buffer = calloc(pos - anchor + 1, sizeof(char));
-            if (buffer == NULL) memory_allocation_failure(__FILE__, __LINE__);
+            if (buffer == NULL) memory_allocation_failure(pos, line, ctx->filepath, __FILE__, __LINE__);
             strncpy(buffer, ctx->src + anchor, pos - anchor);
             buffer[pos - anchor] = '\0';
 
@@ -146,7 +148,7 @@ void lex_file(Transpiler_context_t* ctx) {
          
             char* buffer;
             buffer = calloc(pos - anchor + 1, sizeof(char));
-            if (buffer == NULL) memory_allocation_failure(__FILE__, __LINE__);
+            if (buffer == NULL) memory_allocation_failure(pos, line, ctx->filepath, __FILE__, __LINE__);
             strncpy(buffer, ctx->src + anchor, pos - anchor);
             buffer[pos - anchor] = '\0';
 
@@ -155,7 +157,9 @@ void lex_file(Transpiler_context_t* ctx) {
 
         // Handle illegal characters
         } else {
-            illegal_char_error(ctx, c, pos, line, __FILE__, __LINE__);
+            char err_msg[256];
+            sprintf(err_msg, en_us[RES_ILLEGAL_CHAR_MSG], c);
+            add_error_to_context(ctx, en_us[RES_SYNTAX_ERROR_CAT], err_msg, pos, line, __FILE__, __LINE__);
             pos++;
         }
     }
