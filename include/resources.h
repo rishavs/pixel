@@ -4,9 +4,14 @@
 // TODO - add verification step to ensure that the number of resources in the enum matches the number of resources in the string array
 typedef enum {
     // special content
-    RES_ERROR_LOCATION,
+    RES_PROBLEM_AT,
     RES_INTERNAL_PERROR,
     RES_INTERNAL_LOCATION,
+
+    RES_IS_FATAL,
+    RES_IS_ERROR,
+    // RES_IS_WARNING,
+    // RES_IS_NOTE,
 
     // Error Categories
     RES_MEMORY_FAILURE_CAT,
@@ -15,7 +20,6 @@ typedef enum {
 
     // Memory Allocation Failure
     RES_MEMORY_FAILURE_MSG,
-    RES_MEMORY_FAILURE_NOTE,
     
     // Unhandled Failures
     RES_UNHANDLED_ERROR_MSG,
@@ -24,39 +28,47 @@ typedef enum {
     // Error messages
     RES_ILLEGAL_CHAR_MSG,
     RES_UNCLOSED_DELIMITER_MSG,
-    RES_MISSING_STATEMENT_MSG,
-    RES_MISSING_EXPRESSION_MSG,
-    RES_MISSING_SYNTAX_MSG,
-    RES_MISSING_TOKEN_MSG,
+    
+    RES_EXPECTED_STATEMENT_FOUND_EOS_MSG,
+    RES_EXPECTED_STATEMENT_FOUND_X_MSG,
+    
+    RES_EXPECTED_EXPRESSION_FOUND_EOS_MSG,
+    RES_EXPECTED_EXPRESSION_FOUND_X_MSG,
+    
+    RES_EXPECTED_TOKEN_X_FOUND_EOS_MSG,
+    RES_EXPECTED_TOKEN_X_FOUND_Y_MSG,
+
 
     RES_RESOURCE_COUNT // This helps to keep track of the number of error resources
 } Error_resource;
 
 // Generate the string array using the macro
 static const char* en_us[RES_RESOURCE_COUNT] = {
-    [RES_ERROR_LOCATION]        = "at %zu:%zu in the file \"%s\"",
+    [RES_PROBLEM_AT]            = "Problem at %zu:%zu in the file \"%s\"",
     [RES_INTERNAL_PERROR]       = "Internal Note",
     [RES_INTERNAL_LOCATION]     = "Internal Note: Failed in the compiler code at line %zu in the file \"%s\"",
     
-    [RES_MEMORY_FAILURE_CAT]    = "[ FATAL ] Memory Failure!",
-    [RES_UNHANDLED_ERROR_CAT]   = "[ FATAL ] Unhandled Failure!",
-    [RES_SYNTAX_ERROR_CAT]      = "[ ERROR ] Malformed Syntax!",
+    [RES_IS_FATAL]              = "[ FATAL ]",
+    [RES_IS_ERROR]              = "[ ERROR ]",
 
-    [RES_MEMORY_FAILURE_MSG]    = "Unable to allocate memory for compilation",
-    [RES_MEMORY_FAILURE_NOTE]   = "Note: Your device might have run out of memory. Please close other programs and try again.",
-    
-    [RES_UNHANDLED_ERROR_MSG]   = "Found an unhandled error during compilation ",
-    [RES_UNHANDLED_ERROR_NOTE]  = "Note: This is likely not a bug in your code, but in the compiler! Please report with minimal reproducible code.",
+    [RES_MEMORY_FAILURE_CAT]    = "Memory Failure!",
+    [RES_UNHANDLED_ERROR_CAT]   = "Unhandled Failure!",
+    [RES_SYNTAX_ERROR_CAT]      = "Malformed Syntax!",
+
+    [RES_MEMORY_FAILURE_MSG]    = "Failed to allocate dmemory during compilation",
+    [RES_UNHANDLED_ERROR_MSG]   = "This is likely not a bug in your code, but in the compiler! Please report with minimal reproducible code.",
     
     [RES_ILLEGAL_CHAR_MSG]      = "Found illegal character \"%c\", ",
-    [RES_UNCLOSED_DELIMITER_MSG] = "Found unclosed delimiter \"%s\", ",
-    [RES_MISSING_STATEMENT_MSG]    = "Expected a statement, but instead found \"%s\", ",
-    [RES_MISSING_EXPRESSION_MSG]    = "Expected an expression, but instead found \"%s\", ",
-    [RES_MISSING_SYNTAX_MSG]    = "Expected \"%s\", but instead found \"%s\", ",
-    [RES_MISSING_TOKEN_MSG]     = "Expected \"%s\", but instead found \"%s\", ",
-};
+    [RES_UNCLOSED_DELIMITER_MSG] = "Expected the delimiter \"%s\" to get closed, but instead reached end of source, ",
 
-// const char* error_message = en_us_error_resources[RES_MEMORY_FAILURE_MSG];
-// printf("%s\n", error_message); // Output: Memory Allocation Failed!
+    [RES_EXPECTED_STATEMENT_FOUND_EOS_MSG] = "Expected a statement, but instead reached end of source, ",
+    [RES_EXPECTED_STATEMENT_FOUND_X_MSG] = "Expected a statement, but instead found \"%s\", ",
+
+    [RES_EXPECTED_EXPRESSION_FOUND_EOS_MSG] = "Expected an expression, but instead  reached end of source, ",
+    [RES_EXPECTED_EXPRESSION_FOUND_X_MSG] = "Expected an expression, but instead found \"%s\", ",
+    
+    [RES_EXPECTED_TOKEN_X_FOUND_EOS_MSG] = "Expected \"%s\", but instead reached end of source",
+    [RES_EXPECTED_TOKEN_X_FOUND_Y_MSG] = "Expected \"%s\", but instead found \"%s\", ",
+};
 
 #endif // PIXEL_RESOURCES_H

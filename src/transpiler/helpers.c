@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdarg.h>
+#include <time.h>
 
 bool string_starts_with(char *src, size_t src_len, size_t i,  char* frag) {
     size_t frag_len = strlen(frag);
@@ -60,3 +62,47 @@ char* join_strings(int n, ...) {
 //     printf("%s\n", result);
 //     free(result);
 // }
+
+char* get_duration(clock_t start, clock_t end) {
+    double duration = ((double)(end - start))/CLOCKS_PER_SEC; // in seconds
+
+    int minutes = (int)duration / 60;
+    int seconds = (int)duration % 60;
+    int milliseconds = ((int)(duration * 1000)) % 1000;
+    int microseconds = ((int)(duration * 1000000)) % 1000;
+
+    char *formatted_duration = malloc(100 * sizeof(char));
+    if (formatted_duration == NULL) {
+        perror("Failed to allocate memory for formatted_duration");
+        exit(EXIT_FAILURE);
+    }
+
+    snprintf(formatted_duration, 100, "%dm %ds %dms %dus", 
+             minutes, seconds, milliseconds, microseconds);
+
+    return formatted_duration;
+}
+
+// wrap sprintf to return the string
+char* build_string (const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+
+    // get the length of the formatted string
+    size_t len = vsnprintf(NULL, 0, format, args) + 1;
+    va_end(args);
+
+    // allocate memory for the formatted string
+    char* buffer = calloc(len, sizeof(char));
+    if (buffer == NULL) {
+        perror("Failed to allocate memory for buffer");
+        exit(EXIT_FAILURE);
+    }
+
+    // format the string
+    va_start(args, format);
+    vsnprintf(buffer, len, format, args);
+    va_end(args);
+
+    return buffer;
+}

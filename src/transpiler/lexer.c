@@ -35,6 +35,7 @@ void lex_file(Transpiler_context_t* ctx) {
 
         // Skip single line comments
         } else if (c == '-' && ctx->src[pos + 1] == '-') {
+            
             while (pos < ctx->src_len && c != '\0') {
                 c = ctx->src[pos];
 
@@ -46,7 +47,7 @@ void lex_file(Transpiler_context_t* ctx) {
             }
 
         // Skip multi-line comments
-        } else if (c == '-' && ctx->src[pos + 1] == '[') {
+        } else if (c == '-' && ctx->src[pos + 1] && ctx->src[pos + 1] == '[') {
             bool comment_closed = false;
             
             while (pos < ctx->src_len && c != '\0') {
@@ -54,7 +55,7 @@ void lex_file(Transpiler_context_t* ctx) {
                 if (c == '\n') {
                     line++;
                 }
-                if (c == ']' && ctx->src[pos + 1] == '-') {
+                if (c == ']' && ctx->src[pos + 1] && ctx->src[pos + 1] == '-') {
                     pos += 2;
                     comment_closed = true;
                     break;
@@ -63,7 +64,11 @@ void lex_file(Transpiler_context_t* ctx) {
             }
             if (!comment_closed) {
                 // raise unclosed delimiter error
-                add_error_to_context(ctx, en_us[RES_SYNTAX_ERROR_CAT], en_us[RES_UNCLOSED_DELIMITER_MSG], pos, line, __FILE__, __LINE__);
+                add_error_to_context(ctx, 
+                    en_us[RES_SYNTAX_ERROR_CAT], 
+                    build_string(en_us[RES_UNCLOSED_DELIMITER_MSG], "-["),
+                    pos, line, __FILE__, __LINE__
+                );
                 return;
             }
 
@@ -150,11 +155,11 @@ void lex_file(Transpiler_context_t* ctx) {
 
         // Handle illegal characters
         } else {
-            char* err_msg = calloc(strlen(en_us[RES_ILLEGAL_CHAR_MSG]) + 1, sizeof(char));
-            if (err_msg == NULL) memory_allocation_failure(pos, line, ctx->filepath, __FILE__, __LINE__);
-
-            sprintf(err_msg, en_us[RES_ILLEGAL_CHAR_MSG], c);
-            add_error_to_context(ctx, en_us[RES_SYNTAX_ERROR_CAT], err_msg, pos, line, __FILE__, __LINE__);
+            add_error_to_context(ctx, 
+                en_us[RES_SYNTAX_ERROR_CAT], 
+                build_string(en_us[RES_ILLEGAL_CHAR_MSG], c), 
+                pos, line, __FILE__, __LINE__
+            );
             pos++;
         }
     }

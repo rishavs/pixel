@@ -9,9 +9,8 @@
 void memory_allocation_failure(size_t pos, size_t line, const char* filepath, char* transpiler_file, size_t transpiler_line) {
     fprintf(stderr, "\033[0;31m%s %s ", en_us[RES_MEMORY_FAILURE_CAT], en_us[RES_MEMORY_FAILURE_MSG]);
     if (pos && line && filepath) { // memory failures need not be tied to user code
-        fprintf(stderr, en_us[RES_ERROR_LOCATION], pos, line, filepath);
+        fprintf(stderr, en_us[RES_PROBLEM_AT], pos, line, filepath);
     };   
-    fprintf(stderr, "\n%s\n", en_us[RES_MEMORY_FAILURE_NOTE]);
     perror(en_us[RES_INTERNAL_PERROR]);
     fprintf(stderr, en_us[RES_INTERNAL_LOCATION], transpiler_line, transpiler_file);
     fprintf(stderr, "\n\033[0m");
@@ -20,7 +19,7 @@ void memory_allocation_failure(size_t pos, size_t line, const char* filepath, ch
 
 void unhandled_error(size_t pos, size_t line, const char* filepath, char* transpiler_file, size_t transpiler_line){
     fprintf(stderr, "\033[0;31m%s %s", en_us[RES_UNHANDLED_ERROR_CAT], en_us[RES_UNHANDLED_ERROR_MSG]);
-    fprintf(stderr, en_us[RES_ERROR_LOCATION], pos, line, filepath);
+    fprintf(stderr, en_us[RES_PROBLEM_AT], pos, line, filepath);
     fprintf(stderr, "\n%s\n", en_us[RES_UNHANDLED_ERROR_NOTE]);
     perror(en_us[RES_INTERNAL_PERROR]);
     fprintf(stderr, en_us[RES_INTERNAL_LOCATION], transpiler_line, transpiler_file);

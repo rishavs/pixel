@@ -32,10 +32,10 @@ Test_Result only_comments_and_spaces() {
     };
 
     char* src = " \
-    -- This is a single line comment \
-    -[ This is a multi \
-    \
-    line comment \
+    -- This is a single line comment \n\
+    -[ This is a multi \n\
+    \n\
+    line comment \n\
     ";
     char* c_out = DEFAULT_CFILE_CODE;
     char* h_out = "";

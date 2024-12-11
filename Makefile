@@ -24,7 +24,6 @@ SOURCE_FILES = \
 	src/transpiler/context.c \
 	src/transpiler/errors.c \
 	src/transpiler/lexer.c	\
-	src/transpiler/parser.c	\
 	src/transpiler/transpiler.c \
 	src/transpiler/presenter.c 
 
