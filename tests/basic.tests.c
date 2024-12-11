@@ -36,7 +36,7 @@ Test_Result only_comments_and_spaces() {
     -[ This is a multi \n\
     \n\
     line comment \n\
-    ";
+    ]-";
     char* c_out = DEFAULT_CFILE_CODE;
     char* h_out = "";
     
@@ -56,7 +56,7 @@ Test_Result basic_var_int_declaration() {
         .passed = false 
     };
 
-    char* src = "var x = 10";
+    char* src = "let x = 10";
     char* c_out = "#include <stdint.h>\
 \
 int main() {\

@@ -12,11 +12,12 @@ void lex_file(Transpiler_context_t* ctx) {
 
     // Initialize the iterator
     char c = ctx->src[0];
+    ctx->src_len = strlen(ctx->src);
 
     // Loop through the source code
     size_t pos = 0;
     size_t line = 0;
-    while (c != '\0') {
+    while (pos < ctx->src_len && c != '\0') {
         c = ctx->src[pos];
 
         // Skip whitespace
@@ -155,6 +156,7 @@ void lex_file(Transpiler_context_t* ctx) {
 
         // Handle illegal characters
         } else {
+            c = ctx->src[pos];
             add_error_to_context(ctx, 
                 en_us[RES_SYNTAX_ERROR_CAT], 
                 build_string(en_us[RES_ILLEGAL_CHAR_MSG], c), 

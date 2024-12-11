@@ -28,12 +28,22 @@ typedef enum {
     // Error messages
     RES_ILLEGAL_CHAR_MSG,
     RES_UNCLOSED_DELIMITER_MSG,
+
+    RES_STATEMENT,
+    RES_EXPRESSION,
+    RES_IDENTIFIER,
+    RES_EXPECTED,
+    RES_FOUND_X,
+    RES_REACHED_EOS,
     
     RES_EXPECTED_STATEMENT_FOUND_EOS_MSG,
     RES_EXPECTED_STATEMENT_FOUND_X_MSG,
     
     RES_EXPECTED_EXPRESSION_FOUND_EOS_MSG,
     RES_EXPECTED_EXPRESSION_FOUND_X_MSG,
+
+    RES_EXPECTED_IDENTIFIER_FOUND_EOS_MSG,
+    RES_EXPECTED_IDENTIFIER_FOUND_X_MSG,
     
     RES_EXPECTED_TOKEN_X_FOUND_EOS_MSG,
     RES_EXPECTED_TOKEN_X_FOUND_Y_MSG,
@@ -59,16 +69,16 @@ static const char* en_us[RES_RESOURCE_COUNT] = {
     [RES_UNHANDLED_ERROR_MSG]   = "This is likely not a bug in your code, but in the compiler! Please report with minimal reproducible code.",
     
     [RES_ILLEGAL_CHAR_MSG]      = "Found illegal character \"%c\", ",
-    [RES_UNCLOSED_DELIMITER_MSG] = "Expected the delimiter \"%s\" to get closed, but instead reached end of source, ",
+    [RES_UNCLOSED_DELIMITER_MSG] = "Expected the delimiter \"%s\" to get closed, but instead reached end of source.",
 
-    [RES_EXPECTED_STATEMENT_FOUND_EOS_MSG] = "Expected a statement, but instead reached end of source, ",
-    [RES_EXPECTED_STATEMENT_FOUND_X_MSG] = "Expected a statement, but instead found \"%s\", ",
+    [RES_STATEMENT]             = "statement",
+    [RES_EXPRESSION]            = "expression",
+    [RES_IDENTIFIER]            = "identifier",
 
-    [RES_EXPECTED_EXPRESSION_FOUND_EOS_MSG] = "Expected an expression, but instead  reached end of source, ",
-    [RES_EXPECTED_EXPRESSION_FOUND_X_MSG] = "Expected an expression, but instead found \"%s\", ",
-    
-    [RES_EXPECTED_TOKEN_X_FOUND_EOS_MSG] = "Expected \"%s\", but instead reached end of source",
-    [RES_EXPECTED_TOKEN_X_FOUND_Y_MSG] = "Expected \"%s\", but instead found \"%s\", ",
+    [RES_EXPECTED]              = "Expected %s, ",
+    [RES_FOUND_X]               = "but found \"%s\". ",
+    [RES_REACHED_EOS]           = "but instead reached end of source.",
+
 };
 
 #endif // PIXEL_RESOURCES_H

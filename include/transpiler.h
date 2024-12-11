@@ -34,6 +34,7 @@ typedef struct Transpiler_error_t {
     X(TOKEN_ILLEGAL)    \
     X(TOKEN_WHITESPACE) \
     X(TOKEN_EOF)        \
+    X(TOKEN_END)        \
     X(TOKEN_ASSIGN)     \
     X(TOKEN_PLUS)       \
     X(TOKEN_MINUS)      \
@@ -170,6 +171,7 @@ struct Transpiler_context_t {
 void create_Transpiler_context_t(Transpiler_context_t* ctx, const char* filepath);
 void add_token_to_context(Transpiler_context_t* ctx, Token_kind kind, size_t pos, size_t len, size_t line);
 void add_error_to_context(Transpiler_context_t* ctx, const char* category, const char* msg, const size_t pos, const size_t line, const char* transpiler_file, const size_t transpiler_line);
+void parser_expected_syntax_error(Transpiler_context_t* ctx, const char* expected_syntax, const char* transpiler_file, const size_t transpiler_line);
 size_t add_node_to_context(Transpiler_context_t* ctx, Node_kind kind, size_t pos, size_t line);
 size_t add_to_indices(size_t* indices_list, size_t index, size_t count, size_t capacity);
 void transpile_file(Transpiler_context_t* ctx);

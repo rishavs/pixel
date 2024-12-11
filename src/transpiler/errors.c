@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "resources.h"
+#include "helpers.h"
 #include "transpiler.h"
 
 // Memory allocaltion failed. Fatal failure.
@@ -27,7 +28,6 @@ void unhandled_error(size_t pos, size_t line, const char* filepath, char* transp
     exit(EXIT_FAILURE);
 }
 
-// Helper - add error to context
 void add_error_to_context(Transpiler_context_t* ctx, const char* category, const char* msg, const size_t pos, const size_t line, const char* transpiler_file, const size_t transpiler_line) {
     if (ctx->errors_count >= ctx->errors_capacity - 1) {
         ctx->errors_capacity *= 2;
@@ -47,6 +47,30 @@ void add_error_to_context(Transpiler_context_t* ctx, const char* category, const
 
     ctx->errors_count++;
 }
+
+void parser_expected_syntax_error(Transpiler_context_t* ctx, const char* expected_syntax, const char* transpiler_file, const size_t transpiler_line) {
+    Token_t token = ctx->tokens[ctx->i];
+    char* err_msg;
+    if (ctx->i >= ctx->tokens_count) {
+        err_msg = join_strings(3,
+            build_string(en_us[RES_EXPECTED], expected_syntax), 
+            " ", 
+            en_us[RES_REACHED_EOS]
+        );
+    } else {
+        err_msg = join_strings(3,
+            build_string(en_us[RES_EXPECTED], expected_syntax), 
+            " ", 
+            build_string(en_us[RES_FOUND_X], get_substring(ctx->src, token.pos, token.len)));
+    }
+    add_error_to_context(ctx, 
+        en_us[RES_SYNTAX_ERROR_CAT], 
+        err_msg, 
+        token.pos, token.line, __FILE__, __LINE__
+    );
+   
+}
+
 
 // --------------------------------------
 // Lexer Errors

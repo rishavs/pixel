@@ -8,130 +8,131 @@
 #include "errors.h"
 #include "transpiler.h"
 
-bool parse_expression(Transpiler_context_t* ctx, size_t parent_index, size_t scope_owner_index);
+size_t parse_integer(Transpiler_context_t* ctx) {
+    Token_t token = ctx->tokens[ctx->i];
+    size_t index = add_node_to_context(ctx, NODE_INTEGER, token.pos, token.line);
 
-bool parse_declaration(Transpiler_context_t* ctx, size_t parent_index, size_t scope_owner_index) {
-    bool decl_res = false;
+    return index;
+}
 
+size_t parse_identifier(Transpiler_context_t* ctx) {
+    Token_t token = ctx->tokens[ctx->i];
+    size_t index = add_node_to_context(ctx, NODE_IDENTIFIER, token.pos, token.line);
+
+    return index;
+}
+
+size_t parse_expression(Transpiler_context_t* ctx) {
+    Token_t token = ctx->tokens[ctx->i];
+    if (token.kind == TOKEN_INTEGER) {
+        return parse_integer(ctx);
+    }
+    // Add more expression parsing logic here if needed
+
+    parser_expected_syntax_error(ctx, en_us[RES_EXPRESSION], __FILE__, __LINE__);
+    return 0;
+}
+
+size_t parse_declaration(Transpiler_context_t* ctx) {
+    Token_t token = ctx->tokens[ctx->i];
+    size_t index = add_node_to_context(ctx, NODE_DECLARATION, token.pos, token.line);
+    Node_t* node = &ctx->nodes[index];
+
+    
+    // increment cursor. consume 'let' token
+    ctx->i++;
+    token = ctx->tokens[ctx->i];
+    // next token should be identifier
+    if (token.kind != TOKEN_IDENTIFIER) {
+        printf("Expected identifier, but found %s\n", list_of_token_kinds[token.kind]);
+        parser_expected_syntax_error(ctx, en_us[RES_IDENTIFIER], __FILE__, __LINE__);
+        
+        return 0;
+    }
+
+    size_t identifier_index = parse_identifier(ctx);
+    if (identifier_index == 0) {
+        return 0;
+    }
+    node->Declaration_data.identifier_index = identifier_index;
+
+    // increment cursor. consume identifier token
+    ctx->i++;
+    token = ctx->tokens[ctx->i];
+
+    // next token should be assignment operator
+    if (token.kind != TOKEN_ASSIGN) {
+        parser_expected_syntax_error(ctx, "=", __FILE__, __LINE__);
+        
+        return 0;
+    }
+
+    // increment cursor. consume '=' token
+    ctx->i++;
+    token = ctx->tokens[ctx->i];
+
+    // parse expression
+    size_t expression_index = parse_expression(ctx);
+    if (expression_index == 0) {
+        return 0;
+    }
+
+    node->Declaration_data.expression_index = expression_index;
+
+    return index;       
+}
+
+size_t parse_statement(Transpiler_context_t* ctx) {
+    Token_t token = ctx->tokens[ctx->i];
+    if (token.kind == TOKEN_LET) {
+        return parse_declaration(ctx);
+    } 
+
+    // if no other statement is found, return 0
+    parser_expected_syntax_error(ctx, en_us[RES_STATEMENT], __FILE__, __LINE__);
+    return 0;
+}
+
+void recover_from_error(Transpiler_context_t* ctx) {
+    // skip to the next "End" token
+    while (ctx->i < ctx->tokens_count) {
+        Token_t token = ctx->tokens[ctx->i];
+        if (token.kind == TOKEN_END) {
+            break;
+        }
+        ctx->i++;
+    }
+}
+
+size_t* parse_block(Transpiler_context_t* ctx) {
     Token_t token = ctx->tokens[ctx->i];
     Token_t next = (ctx->i + 1 < ctx->tokens_count) ? ctx->tokens[ctx->i + 1] : (Token_t){0};
 
-    // add node to context
-    size_t decl_index = add_node_to_context(ctx, NODE_DECLARATION, token.pos, token.line);
-    Node_t* decl_node = &ctx->nodes[decl_index];
-    Node_t* parent = &ctx->nodes[parent_index];
-
-    decl_node->parent = parent_index;
-    decl_node->scope_depth = parent->scope_depth + 1;
-    decl_node->root_distance = parent->root_distance + 1;
-    decl_node->scope_owner = scope_owner_index;
-
-    // increment cursor
-    ctx->i++;
-    token = ctx->i < ctx->tokens_count ? ctx->tokens[ctx->i] : (Token_t){0};
-
-    // check if the declaration is a variable or a constant
-    decl_node->Declaration_data.is_var = token.kind == TOKEN_VAR ? true : false;
-
-    if (token.kind == TOKEN_VAR) {
-        decl_node->Declaration_data.is_var = true;
-    } else if (token.kind == TOKEN_CONST) {
-        decl_node->Declaration_data.is_var = false;
-    } 
-
-    // Expect an identifier
-    ctx->i++;
-    token = ctx->i < ctx->tokens_count ? ctx->tokens[ctx->i] : (Token_t){0};
-    if (token.kind != TOKEN_IDENTIFIER) {
-        size_t err_msg_len = strlen(en_us[RES_MISSING_STATEMENT_MSG]) + token.len + 1;
-        char* err_msg = malloc(err_msg_len);
-        if (err_msg == NULL) memory_allocation_failure(token.pos, token.line, ctx->filepath, __FILE__, __LINE__);
-
-        snprintf(err_msg, err_msg_len, en_us[RES_MISSING_STATEMENT_MSG], get_substring(ctx->src, token.pos, token.len));
-        add_error_to_context(ctx, en_us[RES_SYNTAX_ERROR_CAT], err_msg, token.pos, token.line, __FILE__, __LINE__);
-
-        free(err_msg);
-        return false;
-    }
-
-    // Store the identifier index
-    decl_node->Declaration_data.identifier_index = add_node_to_context(ctx, NODE_IDENTIFIER, token.pos, token.line);
-
-    // Expect an assignment operator
-    ctx->i++;
-    token = ctx->i < ctx->tokens_count ? ctx->tokens[ctx->i] : (Token_t){0};
-    if (token.kind != TOKEN_ASSIGN) {
-        size_t err_msg_len = strlen(en_us[RES_MISSING_STATEMENT_MSG]) + token.len + 1;
-        char* err_msg = malloc(err_msg_len);
-        if (err_msg == NULL) memory_allocation_failure(token.pos, token.line, ctx->filepath, __FILE__, __LINE__);
-
-        snprintf(err_msg, err_msg_len, en_us[RES_MISSING_STATEMENT_MSG], get_substring(ctx->src, token.pos, token.len));
-        add_error_to_context(ctx, en_us[RES_SYNTAX_ERROR_CAT], err_msg, token.pos, token.line, __FILE__, __LINE__);
-
-        free(err_msg);
-        return false;
-    }
-
-    // Parse the expression
-    ctx->i++;
-    decl_node->Declaration_data.expression_index = add_node_to_context(ctx, NODE_INTEGER, token.pos, token.line);
-    decl_res = parse_expression(ctx, decl_node->Declaration_data.expression_index, scope_owner_index);
-
-    return decl_res;
-}
-
-bool parse_expression(Transpiler_context_t* ctx, size_t parent_index, size_t scope_owner_index) {
-    Token_t token = ctx->tokens[ctx->i];
-    if (token.kind == TOKEN_INTEGER) {
-        // Handle integer literal
-        Node_t* expr_node = &ctx->nodes[parent_index];
-        expr_node->kind = NODE_INTEGER;
-        expr_node->Integer_data.len = token.len;
-        ctx->i++;
-        return true;
-    }
-    // Add more expression parsing logic here if needed
-    return false;
-}
-
-void recover(Transpiler_context_t* ctx) {
-    while (ctx->i < ctx->tokens_count && ctx->tokens[ctx->i].kind != TOKEN_EOF) {
-        ctx->i++;
-    }
-}
-
-bool parse_block(Transpiler_context_t* ctx, size_t parent_index, size_t scope_owner_index) {
-    bool block_res = false;
-
-    // the statements list in parent should be already allocated
-    Node_t* parent = &ctx->nodes[parent_index];
+    size_t block_count = 0;
+    size_t block_capacity = 8;
+    size_t* block_list = calloc(block_capacity, sizeof(size_t));
+    if (block_list == NULL) memory_allocation_failure(token.pos, token.line, ctx->filepath, __FILE__, __LINE__);
 
     while (ctx->i < ctx->tokens_count) {
-        Token_t token = ctx->tokens[ctx->i];
-        Token_t next = (ctx->i + 1 < ctx->tokens_count) ? ctx->tokens[ctx->i + 1] : (Token_t){0};
+        token = ctx->tokens[ctx->i];
+        next = (ctx->i + 1 < ctx->tokens_count) ? ctx->tokens[ctx->i + 1] : (Token_t){0};
 
         if (token.kind == TOKEN_LET) {
-            printf("Parsing Declaration\n");
-            bool decl_res = parse_declaration(ctx, parent_index, scope_owner_index);
-            if (decl_res) {
-                block_res = true;
-            } else {
-                recover(ctx);
+            size_t stmt_index = parse_statement(ctx);
+            add_to_indices(block_list, stmt_index, block_count, block_capacity);
+
+            if (stmt_index == 0) {
+                recover_from_error(ctx);
             }
         } else {
-            size_t err_msg_len = strlen(en_us[RES_MISSING_STATEMENT_MSG]) + token.len + 1;
-            char* err_msg = malloc(err_msg_len);
-            if (err_msg == NULL) memory_allocation_failure(token.pos, token.line, ctx->filepath, __FILE__, __LINE__);
+            parser_expected_syntax_error(ctx, en_us[RES_STATEMENT], __FILE__, __LINE__);
+            recover_from_error(ctx);
 
-            snprintf(err_msg, err_msg_len, en_us[RES_MISSING_STATEMENT_MSG], get_substring(ctx->src, token.pos, token.len));
-            add_error_to_context(ctx, en_us[RES_SYNTAX_ERROR_CAT], err_msg, token.pos, token.line, __FILE__, __LINE__);
-
-            free(err_msg);
-            ctx->i++;
         }
+        ctx->i++;
     }
 
-    return block_res;
+    return block_list;
 }
 
 void parse_file(Transpiler_context_t* ctx) {
@@ -154,8 +155,6 @@ void parse_file(Transpiler_context_t* ctx) {
     // Initialize the program node
     root->Program_data.statements_count = 0;
     root->Program_data.statements_capacity = 8;
-    root->Program_data.statements = calloc(root->Program_data.statements_capacity, sizeof(size_t));
-    if (root->Program_data.statements == NULL) memory_allocation_failure(0, 0, ctx->filepath, __FILE__, __LINE__);
+    root->Program_data.statements = parse_block(ctx);
 
-    bool res = parse_block(ctx, index, index);
 }
