@@ -31,6 +31,10 @@ void transpile_file(Transpiler_context_t* ctx) {
         printf("Node %zu: %s\n", i, list_of_node_kinds[n.kind]);
     }
 
+    // generate code
+    gen_code(ctx);
+    printf("C Code: %s\n", ctx->c_code);
+    printf("H Code: %s\n", ctx->h_code);
 
     
     // print errors

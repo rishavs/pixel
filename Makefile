@@ -25,6 +25,7 @@ SOURCE_FILES = \
 	src/transpiler/errors.c \
 	src/transpiler/lexer.c	\
 	src/transpiler/parser.c	\
+	src/transpiler/codegen.c	\
 	src/transpiler/transpiler.c \
 	src/transpiler/presenter.c 
 
